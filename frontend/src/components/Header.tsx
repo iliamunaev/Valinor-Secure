@@ -17,6 +17,7 @@ const Header: React.FC<HeaderProps> = ({ showTeamMembers }) => {
   return (
     <div className="fixed top-0 left-0 right-0 z-50 h-16 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between px-6 transition-colors duration-200">
       <div className="flex items-center space-x-4">
+        <img src="/assets/logo.png" alt="Valinor-Secure Logo" className="h-8 w-auto" />
         <h1 className="text-xl font-semibold text-gray-900 dark:text-gray-100 bg-[transparent] opacity-100">Valinor-Secure</h1>
       </div>
       <div className="flex items-center space-x-4">
