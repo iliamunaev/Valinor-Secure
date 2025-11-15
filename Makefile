@@ -30,6 +30,9 @@ re: clean all
 logs:
 	$(DOCKER_COMPOSE) logs -f --tail=200
 
+logs-backend:
+	$(DOCKER_COMPOSE) logs -f --tail=100 backend
+
 ps:
 	$(DOCKER_COMPOSE) ps
 
@@ -42,4 +45,4 @@ redis-logs:
 redis-flush:
 	$(DOCKER_COMPOSE) exec redis redis-cli FLUSHALL
 
-.PHONY: all build build-no-cache run stop restart down clean re logs ps redis-cli redis-logs redis-flush
+.PHONY: all build build-no-cache run stop restart down clean re logs logs-backend ps redis-cli redis-logs redis-flush

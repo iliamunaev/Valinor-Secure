@@ -2,10 +2,7 @@ from fastapi import FastAPI, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
-
-import hashlib
 from cache import init_redis, close_redis, generate_cache_key, get_cached_response, set_cached_response
-import os
 from typing import List
 
 class MetaModel(BaseModel):
@@ -151,23 +148,30 @@ app.add_middleware(
 @app.post("/input")
 async def receive_input(payload: InputPayload):
     """
-    Receives the real INPUT_EXAMPLE-like JSON from frontend.
+    Receives the payload from frontend.
+    Uses Redis cache to avoid reprocessing the same input.
     """
-    print("📥 Received /input payload:", payload.dict())
+    # Generate cache key from the full payload
+    cache_key = generate_cache_key("/input", payload.dict())
 
-    return JSONResponse(content={
+    # Check cache first
+    cached_response = await get_cached_response(cache_key)
+    if cached_response:
+        print("ache HIT for /input")
+        return JSONResponse(content=cached_response)
+
+    print("Received /input payload:", payload.dict())
+
+    # Process request (currently just echo back, but can trigger assessment here)
+    response = {
         "status": "ok",
         "received": payload.dict()
-    })
+    }
 
+    # Cache the response
+    await set_cached_response(cache_key, response)
 
-# @app.get("/input")
-# async def read_input():
-#     return JSONResponse(content=INPUT_EXAMPLE)
-
-# @app.post("/input")
-# async def read_input():
-#     return JSONResponse(content=INPUT_EXAMPLE)
+    return JSONResponse(content=response)
 
 
 # @app.post("/assess")
