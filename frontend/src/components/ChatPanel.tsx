@@ -52,6 +52,9 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ isSidebarCollapsed, onAssessmentC
   const [isLoadingHistory, setIsLoadingHistory] = useState(true);
   const [selectedModel, setSelectedModel] = useState(MODELS[1]); // Default to GPT-4
   const [showModelDropdown, setShowModelDropdown] = useState(false);
+  const [isTeamSelected, setIsTeamSelected] = useState(false);
+  const [isUserSelected, setIsUserSelected] = useState(false);
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -232,6 +235,78 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ isSidebarCollapsed, onAssessmentC
     }
   };
 
+  const handleDeleteHistory = async (e: React.MouseEvent, itemId: string) => {
+    e.stopPropagation(); // Prevent triggering the item click
+
+    try {
+      // Delete from backend
+      const response = await fetch(`${API_ENDPOINTS.HISTORY_DELETE}/${itemId}`, {
+        method: 'DELETE',
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to delete history item');
+      }
+
+      // Remove from local state
+      setAssessmentHistory(prev => prev.filter(item => item.id !== itemId));
+
+      // Clear selection if the deleted item was selected
+      if (selectedId === itemId) {
+        setSelectedId(null);
+      }
+    } catch (error) {
+      console.error('Error deleting history item:', error);
+    }
+  };
+
+  const handleAddButtonClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    // Check file type (CSV or text files)
+    const validTypes = ['text/csv', 'application/vnd.ms-excel', 'text/plain'];
+    if (!validTypes.includes(file.type) && !file.name.endsWith('.csv')) {
+      alert('Please upload a CSV file');
+      return;
+    }
+
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+
+      // Upload to CSV endpoint
+      const response = await fetch(API_ENDPOINTS.CSV_INPUT, {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to upload file');
+      }
+
+      const result = await response.json();
+      console.log('File upload result:', result);
+
+      // Optionally trigger assessments for uploaded products
+      // You can implement batch assessment logic here
+      alert(`File uploaded successfully! Found ${result.products?.length || 0} products.`);
+
+    } catch (error) {
+      console.error('Error uploading file:', error);
+      alert('Error uploading file. Please try again.');
+    } finally {
+      // Reset file input
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    }
+  };
+
   return (
     <div className="flex flex-col h-full bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 w-96 transition-colors duration-200">
       {/* Header */}
@@ -241,7 +316,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ isSidebarCollapsed, onAssessmentC
       </div>
 
       {/* Assessment History List */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-2">
+      <div className="flex-1 overflow-y-scroll p-4 space-y-2 custom-scrollbar">
         {isLoadingHistory && (
           <div className="text-center py-8 text-gray-500 dark:text-gray-400">
             <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
@@ -301,6 +376,16 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ isSidebarCollapsed, onAssessmentC
                   )}
                 </div>
               </div>
+              {/* Delete button */}
+              <button
+                onClick={(e) => handleDeleteHistory(e, item.id)}
+                className="ml-2 p-1 text-gray-400 hover:text-red-600 dark:text-gray-500 dark:hover:text-red-400 transition-colors rounded hover:bg-gray-100 dark:hover:bg-gray-700"
+                title="Delete assessment"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+              </button>
             </div>
           </div>
         ))}
@@ -308,75 +393,130 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ isSidebarCollapsed, onAssessmentC
 
       {/* Input Area */}
       <div className="p-4 border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 transition-colors duration-200">
-        <div className="flex items-end space-x-2">
-          <button className="p-2 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 transition-colors">
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-            </svg>
-          </button>
-          <div className="flex-1 relative">
-            <textarea
-              value={inputValue}
-              onChange={(e) => setInputValue(e.target.value)}
-              onKeyDown={handleKeyDown}
-              placeholder="Check Cloudflare, Check Slack, Check Zoom..."
-              disabled={isLoading}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-              rows={1}
-              style={{ minHeight: '40px', maxHeight: '120px' }}
-            />
-          </div>
+        {/* Input Area */}
+        <div className="flex-1 relative mb-3">
+          <textarea
+            value={inputValue}
+            onChange={(e) => setInputValue(e.target.value)}
+            onKeyDown={handleKeyDown}
+            placeholder="How's it going? Ask the team to..."
+            disabled={isLoading}
+            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+            rows={1}
+            style={{ minHeight: '40px', maxHeight: '120px' }}
+          />
         </div>
-        
+
+        {/* Hidden file input */}
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept=".csv,text/csv,application/vnd.ms-excel"
+          onChange={handleFileUpload}
+          className="hidden"
+        />
+
         {/* Bottom toolbar */}
-        <div className="flex items-center justify-between mt-3 pt-3 border-t border-gray-100 dark:border-gray-600">
-          <div className="flex items-center space-x-4">
-            <button className="p-1 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 transition-colors">
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-3">
+            {/* Add button - File Upload */}
+            <button
+              onClick={handleAddButtonClick}
+              className="p-1.5 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 transition-colors hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg"
+              title="Upload CSV file"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+              </svg>
+            </button>
+
+            {/* Team/Group button */}
+            <button
+              onClick={() => {
+                setIsTeamSelected(true);
+                setIsUserSelected(false);
+              }}
+              className={`p-1.5 rounded-lg transition-colors ${
+                isTeamSelected
+                  ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400'
+                  : 'text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+              }`}
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+              </svg>
+            </button>
+
+            {/* User button */}
+            <button
+              onClick={() => {
+                setIsUserSelected(true);
+                setIsTeamSelected(false);
+              }}
+              className={`p-1.5 rounded-lg transition-colors ${
+                isUserSelected
+                  ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400'
+                  : 'text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+              }`}
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
               </svg>
             </button>
           </div>
 
-          {/* Model Selector Dropdown */}
-          <div className="relative model-dropdown">
-            <button
-              onClick={() => setShowModelDropdown(!showModelDropdown)}
-              className="flex items-center space-x-2 text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors px-2 py-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700"
-            >
-              <span>{selectedModel.name}</span>
-              <svg
-                className={`w-3 h-3 transition-transform ${showModelDropdown ? 'rotate-180' : ''}`}
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
+          <div className="flex items-center space-x-2">
+            {/* Model Selector Dropdown */}
+            <div className="relative model-dropdown">
+              <button
+                onClick={() => setShowModelDropdown(!showModelDropdown)}
+                className="flex items-center space-x-1 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
               >
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                <span>{selectedModel.name}</span>
+                <svg
+                  className={`w-4 h-4 transition-transform ${showModelDropdown ? 'rotate-180' : ''}`}
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+
+              {/* Dropdown Menu */}
+              {showModelDropdown && (
+                <div className="absolute bottom-full right-0 mb-2 w-48 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg overflow-hidden z-50">
+                  {MODELS.map((model) => (
+                    <button
+                      key={model.id}
+                      onClick={() => {
+                        setSelectedModel(model);
+                        setShowModelDropdown(false);
+                      }}
+                      className={`w-full text-left px-4 py-2 text-xs hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors ${
+                        selectedModel.id === model.id
+                          ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400'
+                          : 'text-gray-700 dark:text-gray-300'
+                      }`}
+                    >
+                      <div className="font-medium">{model.name}</div>
+                      <div className="text-gray-500 dark:text-gray-400">{model.provider}</div>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Send/Submit button */}
+            <button
+              onClick={handleSendMessage}
+              disabled={isLoading || !inputValue.trim()}
+              className="p-2 bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 10l7-7m0 0l7 7m-7-7v18" />
               </svg>
             </button>
-
-            {/* Dropdown Menu */}
-            {showModelDropdown && (
-              <div className="absolute bottom-full right-0 mb-2 w-48 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg overflow-hidden z-50">
-                {MODELS.map((model) => (
-                  <button
-                    key={model.id}
-                    onClick={() => {
-                      setSelectedModel(model);
-                      setShowModelDropdown(false);
-                    }}
-                    className={`w-full text-left px-4 py-2 text-xs hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors ${
-                      selectedModel.id === model.id
-                        ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400'
-                        : 'text-gray-700 dark:text-gray-300'
-                    }`}
-                  >
-                    <div className="font-medium">{model.name}</div>
-                    <div className="text-gray-500 dark:text-gray-400">{model.provider}</div>
-                  </button>
-                ))}
-              </div>
-            )}
           </div>
         </div>
       </div>

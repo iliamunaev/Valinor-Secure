@@ -13,6 +13,7 @@ export const API_ENDPOINTS = {
   MOCK_ASSESS: `${API_BASE_URL}/assess/mock`,
   HISTORY_SAVE: `${API_BASE_URL}/history/save`,
   HISTORY_GET: `${API_BASE_URL}/history`,
+  HISTORY_DELETE: `${API_BASE_URL}/history`,
 } as const;
 
 export default API_BASE_URL;

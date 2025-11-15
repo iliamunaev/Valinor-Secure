@@ -2,7 +2,15 @@ from fastapi import FastAPI, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
+from typing import Optional, Dict, Any
 import os
+import sys
+from pathlib import Path
+
+# Add src directory to path
+sys.path.insert(0, str(Path(__file__).parent))
+
+from history_service import HistoryService
 
 ASSESS_EXAMPLE = {
   "vendor": {
@@ -112,6 +120,9 @@ INPUT_EXAMPLE = {
 }
 
 app = FastAPI()
+
+# Initialize history service
+history_service = HistoryService()
 
 # Allow requests from frontend dev server
 origins = ["http://localhost:5173"]
@@ -233,3 +244,170 @@ async def get_chat_string(input_data: ChatInput):
         "status": "success",
         "timestamp": datetime.now().isoformat()
     })
+
+# Mock assessment endpoint for demo purposes
+class MockAssessRequest(BaseModel):
+    product_name: str
+    company_name: Optional[str] = None
+    model: Optional[str] = None
+
+@app.post("/assess/mock")
+async def mock_assess(request: MockAssessRequest):
+    """
+    Mock assessment endpoint that returns demo data.
+    Use this when LLM APIs are not available.
+    """
+    from datetime import datetime
+
+    product = request.product_name
+
+    # Generate mock data based on product name
+    mock_data = {
+        "product_name": product,
+        "vendor": {
+            "name": f"{product} Inc.",
+            "website": f"https://www.{product.lower().replace(' ', '')}.com",
+            "country": "United States",
+            "founded": "2010",
+            "reputation_summary": f"{product} is a well-known enterprise software provider with a solid market presence."
+        },
+        "category": "Communication",
+        "description": f"{product} is a cloud-based collaboration platform.",
+        "usage_description": f"{product} is used for team communication, file sharing, and workflow integration.",
+        "cve_trends": {
+            "total_cves": 8,
+            "critical_count": 1,
+            "high_count": 2,
+            "medium_count": 3,
+            "low_count": 2,
+            "trend_summary": f"{product} has a moderate CVE history with responsive patching."
+        },
+        "incidents": [],
+        "compliance": {
+            "soc2_compliant": True,
+            "iso_certified": True,
+            "gdpr_compliant": True,
+            "encryption_at_rest": True,
+            "encryption_in_transit": True,
+            "notes": f"{product} maintains strong compliance certifications and follows industry security standards."
+        },
+        "deployment_model": "Cloud",
+        "admin_controls": "Comprehensive admin dashboard with user management, security policies, and audit logs.",
+        "trust_score": {
+            "score": 78,
+            "confidence": "Medium",
+            "rationale": f"{product} demonstrates good security practices with regular updates and compliance certifications. Some past security incidents have been addressed promptly.",
+            "risk_factors": ["Third-party integrations", "Cloud-based data storage"],
+            "positive_factors": ["SOC2 certified", "Regular security updates", "Strong encryption"]
+        },
+        "alternatives": [
+            {
+                "product_name": "Microsoft Teams",
+                "vendor": "Microsoft",
+                "rationale": "Enterprise-grade alternative with strong Microsoft integration",
+                "trust_score": 82
+            }
+        ],
+        "citations": [
+            {
+                "url": f"https://www.{product.lower()}.com/security",
+                "source_type": "Vendor Stated",
+                "title": f"{product} Security Documentation",
+                "date": "2024-01-15",
+                "description": "Official security documentation"
+            }
+        ],
+        "assessment_timestamp": datetime.utcnow().isoformat(),
+        "cache_key": "mock_assessment"
+    }
+
+    return JSONResponse(content=mock_data)
+
+# Assessment history endpoints
+class SaveHistoryRequest(BaseModel):
+    id: str
+    productName: str
+    trustScore: int
+    riskLevel: str
+    assessmentData: Dict[str, Any]
+
+@app.post("/history/save")
+async def save_assessment_history(request: SaveHistoryRequest):
+    """
+    Save an assessment to history.
+    """
+    success = history_service.save_assessment(
+        assessment_id=request.id,
+        product_name=request.productName,
+        trust_score=request.trustScore,
+        risk_level=request.riskLevel,
+        assessment_data=request.assessmentData
+    )
+
+    if success:
+        return JSONResponse(content={
+            "status": "success",
+            "message": "Assessment saved to history"
+        })
+    else:
+        return JSONResponse(
+            status_code=500,
+            content={
+                "status": "error",
+                "message": "Failed to save assessment"
+            }
+        )
+
+@app.get("/history")
+async def get_assessment_history(limit: int = 50, offset: int = 0):
+    """
+    Get assessment history with pagination.
+    """
+    history = history_service.get_history(limit=limit, offset=offset)
+    return JSONResponse(content={
+        "status": "success",
+        "history": history,
+        "count": len(history)
+    })
+
+@app.get("/history/{assessment_id}")
+async def get_assessment_by_id(assessment_id: str):
+    """
+    Get a specific assessment by ID.
+    """
+    assessment = history_service.get_assessment(assessment_id)
+
+    if assessment:
+        return JSONResponse(content={
+            "status": "success",
+            "assessment": assessment
+        })
+    else:
+        return JSONResponse(
+            status_code=404,
+            content={
+                "status": "error",
+                "message": "Assessment not found"
+            }
+        )
+
+@app.delete("/history/{assessment_id}")
+async def delete_assessment_from_history(assessment_id: str):
+    """
+    Delete an assessment from history.
+    """
+    success = history_service.delete_assessment(assessment_id)
+
+    if success:
+        return JSONResponse(content={
+            "status": "success",
+            "message": "Assessment deleted from history"
+        })
+    else:
+        return JSONResponse(
+            status_code=500,
+            content={
+                "status": "error",
+                "message": "Failed to delete assessment"
+            }
+        )

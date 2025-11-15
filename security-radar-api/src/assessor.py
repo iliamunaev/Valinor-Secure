@@ -252,13 +252,13 @@ Return ONLY the JSON object, no additional text or explanation."""
             # Parse CVE trends
             cve_data = data.get("cve_trends", {})
             cve_trends = CVETrend(
-                total_cves=cve_data.get("total_cves", 0),
-                critical_count=cve_data.get("critical_count", 0),
-                high_count=cve_data.get("high_count", 0),
-                medium_count=cve_data.get("medium_count", 0),
-                low_count=cve_data.get("low_count", 0),
-                recent_cves=cve_data.get("recent_cves", []),
-                trend_summary=cve_data.get("trend_summary", "No CVE data available")
+                total_cves=cve_data.get("total_cves") or 0,
+                critical_count=cve_data.get("critical_count") or 0,
+                high_count=cve_data.get("high_count") or 0,
+                medium_count=cve_data.get("medium_count") or 0,
+                low_count=cve_data.get("low_count") or 0,
+                recent_cves=cve_data.get("recent_cves") or [],
+                trend_summary=cve_data.get("trend_summary") or "No CVE data available"
             )
 
             # Parse compliance

@@ -69,9 +69,10 @@ export function parseAssessmentRequest(message: string): AssessmentRequest | nul
 
   // Extract product name - common patterns
   const patterns = [
-    /(?:assess|analyze|evaluate|check|review)\s+([A-Z][a-zA-Z0-9\s]+?)(?:\s+for|\s+security|\s*$)/i,
-    /(?:what|how)\s+(?:about|is)\s+([A-Z][a-zA-Z0-9\s]+?)(?:\s+security|\?|\s*$)/i,
-    /security\s+(?:of|for)\s+([A-Z][a-zA-Z0-9\s]+?)(?:\?|\s*$)/i,
+    // Match: "check facebook.com" or "check Slack"
+    /(?:assess|analyze|evaluate|check|review)\s+([a-zA-Z0-9][a-zA-Z0-9\s\.\-]+?)(?:\s+for|\s+security|\s*$)/i,
+    /(?:what|how)\s+(?:about|is)\s+([a-zA-Z0-9][a-zA-Z0-9\s\.\-]+?)(?:\s+security|\?|\s*$)/i,
+    /security\s+(?:of|for)\s+([a-zA-Z0-9][a-zA-Z0-9\s\.\-]+?)(?:\?|\s*$)/i,
   ];
 
   let productName = '';
@@ -85,11 +86,18 @@ export function parseAssessmentRequest(message: string): AssessmentRequest | nul
     }
   }
 
-  // If no pattern matched, look for capitalized words (likely product names)
+  // If no pattern matched, look for words (capitalized or lowercase domains)
   if (!productName) {
-    const capitalizedWords = message.match(/\b[A-Z][a-z]+(?:\s+[A-Z][a-z]+)?\b/g);
-    if (capitalizedWords && capitalizedWords.length > 0) {
-      productName = capitalizedWords[0];
+    // Try to find a domain-like pattern first
+    const domainMatch = message.match(/\b([a-z0-9]+(?:\.[a-z0-9]+)+)\b/i);
+    if (domainMatch) {
+      productName = domainMatch[1];
+    } else {
+      // Fall back to capitalized words
+      const capitalizedWords = message.match(/\b[A-Z][a-z]+(?:\s+[A-Z][a-z]+)?\b/g);
+      if (capitalizedWords && capitalizedWords.length > 0) {
+        productName = capitalizedWords[0];
+      }
     }
   }
 
