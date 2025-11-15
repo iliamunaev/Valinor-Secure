@@ -17,7 +17,7 @@ This document helps AI assistants (like Claude) understand and work with the Sec
 
 ### Tech Stack
 - **Framework**: FastAPI 0.109.0
-- **Python**: 3.10, 3.11, 3.12
+- **Python**: 3.11, 3.12
 - **Database**: SQLite (cache)
 - **Testing**: pytest, tox
 - **LLM APIs**: OpenAI, Anthropic
