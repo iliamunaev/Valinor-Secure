@@ -7,16 +7,25 @@ on:
       - master
       - develop
       - 'feature/**'
+    paths:
+      - 'security-radar-api/**'
+      - '.github/workflows/security-radar-api-ci.yml'
   pull_request:
     branches:
       - main
       - master
       - develop
+    paths:
+      - 'security-radar-api/**'
+      - '.github/workflows/security-radar-api-ci.yml'
 
 jobs:
   lint:
     name: Lint and Type Check
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: security-radar-api
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -41,6 +50,9 @@ jobs:
   test:
     name: Test Python ${{ matrix.python-version }}
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: security-radar-api
     strategy:
       fail-fast: false
       matrix:
@@ -64,8 +76,8 @@ jobs:
       - name: Cache tox environments
         uses: actions/cache@v4
         with:
-          path: .tox
-          key: tox-${{ runner.os }}-${{ matrix.python-version }}-${{ hashFiles('requirements*.txt', 'tox.ini') }}
+          path: security-radar-api/.tox
+          key: tox-${{ runner.os }}-${{ matrix.python-version }}-${{ hashFiles('security-radar-api/requirements*.txt', 'security-radar-api/tox.ini') }}
           restore-keys: |
             tox-${{ runner.os }}-${{ matrix.python-version }}-
             tox-${{ runner.os }}-
@@ -81,6 +93,9 @@ jobs:
   coverage:
     name: Coverage Report
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: security-radar-api
     needs: test
     steps:
       - name: Checkout code
@@ -103,7 +118,7 @@ jobs:
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4
         with:
-          file: ./coverage.xml
+          file: ./security-radar-api/coverage.xml
           flags: unittests
           name: codecov-umbrella
           fail_ci_if_error: false
@@ -115,13 +130,16 @@ jobs:
         with:
           name: coverage-report
           path: |
-            coverage.xml
-            htmlcov/
+            security-radar-api/coverage.xml
+            security-radar-api/htmlcov/
           retention-days: 30
 
   docs:
     name: Documentation Check
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: security-radar-api
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
