@@ -1,0 +1,107 @@
+name: Tests
+
+on:
+  push:
+    branches: [ main, develop ]
+    paths:
+      - 'security-radar-api/**'
+      - '.github/workflows/security-radar-api-tests.yml'
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'security-radar-api/**'
+      - '.github/workflows/security-radar-api-tests.yml'
+
+jobs:
+  test:
+    name: Test Python ${{ matrix.python-version }}
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        python-version: ["3.11", "3.12"]
+      fail-fast: false
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ matrix.python-version }}
+        cache: 'pip'
+        cache-dependency-path: 'security-radar-api/requirements.txt'
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install tox tox-gh-actions
+
+    - name: Run tests with tox
+      working-directory: security-radar-api
+      env:
+        TESTING: true
+        ENABLE_REQUEST_LOGGING: false
+      run: tox
+
+    - name: Upload coverage reports
+      if: matrix.python-version == '3.11'
+      uses: codecov/codecov-action@v4
+      with:
+        fail_ci_if_error: false
+        files: ./security-radar-api/coverage.xml
+        flags: unittests
+        name: codecov-umbrella
+
+  # lint:
+  #   name: Lint and Format Check
+  #   runs-on: ubuntu-latest
+
+  #   steps:
+  #   - name: Checkout code
+  #     uses: actions/checkout@v4
+
+  #   - name: Set up Python
+  #     uses: actions/setup-python@v5
+  #     with:
+  #       python-version: "3.11"
+  #       cache: 'pip'
+  #       cache-dependency-path: 'security-radar-api/requirements.txt'
+
+  #   - name: Install dependencies
+  #     run: |
+  #       python -m pip install --upgrade pip
+  #       pip install tox
+
+  #   - name: Run linting
+  #     working-directory: security-radar-api
+  #     run: tox -e lint
+
+  #   - name: Check code formatting
+  #     working-directory: security-radar-api
+  #     run: tox -e format
+
+  type-check:
+    name: Type Checking
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.11"
+        cache: 'pip'
+        cache-dependency-path: 'security-radar-api/requirements.txt'
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install tox
+
+    - name: Run type checking
+      working-directory: security-radar-api
+      run: tox -e type

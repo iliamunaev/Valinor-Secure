@@ -53,6 +53,7 @@ assessment_cache.db
 # Logs
 *.log
 logs/
+api_request_log.txt
 
 # Temporary files
 *.tmp

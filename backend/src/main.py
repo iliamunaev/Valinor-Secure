@@ -5,106 +5,89 @@ from pydantic import BaseModel
 import os
 
 ASSESS_EXAMPLE = {
-  "meta": {
-    "generated_at": "2025-11-15T10:05:23Z",
-    "mode": "online",
-    "input": "https://app.acmecloud.example",
-    "llm_model": "gpt-4.1-mini"
+  "vendor": {
+    "name": "Cloudflare, Inc.",
+    "website": "https://www.cloudflare.com/",
+    "country": "United States",
+    "founded": "2009",
+    "reputation_summary": "Cloudflare is a reputable company known for providing web infrastructure and website security services."
   },
-  "entity": {
-    "product_name": "AcmeCloud CRM",
-    "vendor_name": "AcmeCloud Inc.",
-    "vendor_website": "https://www.acmecloud.example"
-  },
-  "classification": {
-    "category": "SaaS – CRM",
-    "delivery_model": "SaaS",
-    "short_description": "AcmeCloud CRM is a cloud-based customer relationship management tool for small and mid-sized businesses."
-  },
-  "summary": {
-    "trust_score": 68,
-    "risk_level": "Medium",
-    "confidence": "Medium",
-    "key_points": [
-      "Public security page and basic vulnerability disclosure program are available. [1]",
-      "Several medium/high CVEs in the last 12 months, but no KEV-listed vulnerabilities. [2][3]",
-      "SOC 2 Type II declared; ISO27001 status not clearly documented. [1]",
-      "SSO and RBAC supported; audit logs can be exported. [1]"
-    ]
-  },
-  "cve": {
-    "count_last_12m": 4,
-    "max_cvss": 8.2,
-    "cisa_kev": {
-      "has_kev": False,
-      "kev_cves": []
-    },
-    "comment": "Moderate vulnerability history with some high-severity issues but no known KEV-listed vulnerabilities in the last 12 months."
-  },
-  "incidents": {
-    "known_incidents_last_24m": "No",
-    "items": [],
-    "comment": "No major public incidents identified in the last 24 months based on open-source searches. Data may be incomplete."
-  },
-  "data_compliance": {
-    "data_types": [
-      "PII (names, emails, phone numbers)",
-      "Business customer records"
+  "category": "Security Tool",
+  "description": "Cloudflare is a web infrastructure and website security company, providing content delivery network services, DDoS mitigation, Internet security, and distributed domain name server services.",
+  "usage_description": "Cloudflare is used to protect and accelerate any website online. Once your website is a part of the Cloudflare community, its web traffic is routed through their intelligent global network.",
+  "cve_trends": {
+    "total_cves": 10,
+    "critical_count": 2,
+    "high_count": 3,
+    "medium_count": 4,
+    "low_count": 1,
+    "recent_cves": [
+      {
+        "id": "CVE-2020-11501",
+        "severity": "High",
+        "description": "Cloudflare Workers and Workers KV had a time-of-check-time-of-use (TOCTOU) bug that could allow a Worker to read old versions of KV values."
+      }
     ],
-    "dpa_available": "Yes",
-    "soc2": "Yes",
-    "iso27001": "Unknown",
-    "data_location": "US/EU (mixed, limited EU residency options)"
+    "trend_summary": "Cloudflare has a moderate number of CVEs, but they are responsive in addressing them."
   },
-  "controls": {
-    "sso": "Yes",
-    "mfa": "Yes",
-    "rbac": "Yes",
-    "audit_logs": "Yes"
+  "incidents": [
+    {
+      "date": "2020-07-17",
+      "description": "Cloudflare experienced a global outage that lasted for 27 minutes due to a massive spike in CPU utilization on their network.",
+      "severity": "High",
+      "source_type": "Public Disclosure",
+      "source_url": "https://blog.cloudflare.com/cloudflare-outage/",
+      "source_title": "Cloudflare Outage"
+    }
+  ],
+  "compliance": {
+    "soc2_compliant": "true",
+    "iso_certified": "true",
+    "gdpr_compliant": "true",
+    "data_processing_location": "United States",
+    "encryption_at_rest": "true",
+    "encryption_in_transit": "true",
+    "data_retention_policy": "Cloudflare retains data as necessary to provide its services, comply with legal obligations, resolve disputes, and enforce its agreements.",
+    "notes": "Cloudflare has a strong commitment to privacy and data protection."
+  },
+  "deployment_model": "Cloud",
+  "admin_controls": "Cloudflare provides comprehensive admin controls including traffic control, security settings, performance settings, and network settings.",
+  "trust_score": {
+    "score": 85,
+    "confidence": "High",
+    "rationale": "Cloudflare has a strong reputation, robust security measures, and is compliant with major regulations. However, past incidents and CVEs slightly impact the score.",
+    "risk_factors": ["Past security incidents", "CVE history"],
+    "positive_factors": ["Strong vendor reputation", "Compliance certifications", "Robust security measures"]
   },
   "alternatives": [
     {
-      "product_name": "SafeCloud CRM",
-      "vendor_name": "SafeCloud Ltd.",
-      "trust_score": 78,
-      "risk_level": "Low",
-      "why_safer": [
-        "Fewer recent CVEs and no high-severity issues in the last 12 months. [4][5]",
-        "SOC2 and ISO27001 both declared with public summaries. [4]",
-        "Clear EU data residency and stronger privacy posture. [5]"
-      ]
+      "product_name": "Akamai",
+      "vendor": "Akamai Technologies",
+      "rationale": "Akamai has a similar range of services with a slightly better security track record.",
+      "trust_score": 88
     }
   ],
-  "sources": [
+  "citations": [
     {
-      "id": 1,
-      "type": "vendor",
-      "title": "AcmeCloud Security & Trust Center",
-      "url": "https://www.acmecloud.example/security"
+      "url": "https://www.cloudflare.com/",
+      "source_type": "Vendor Stated",
+      "title": "Cloudflare Official Website",
+      "date": "2022-01-01",
+      "description": "Official website of Cloudflare."
     },
     {
-      "id": 2,
-      "type": "independent",
-      "title": "CVE entries for \"AcmeCloud CRM\"",
-      "url": "https://cve.example.org/?vendor=acmecloud&product=crm"
+      "url": "https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2020-11501",
+      "source_type": "CVE Database",
+      "title": "CVE-2020-11501",
+      "date": "2020-04-15",
+      "description": "Details of CVE-2020-11501."
     },
     {
-      "id": 3,
-      "type": "independent",
-      "title": "CISA KEV search for \"AcmeCloud\"",
-      "url": "https://www.cisa.gov/known-exploited-vulnerabilities"
-    },
-    {
-      "id": 4,
-      "type": "vendor",
-      "title": "SafeCloud Trust Center",
-      "url": "https://trust.safecloud.example"
-    },
-    {
-      "id": 5,
-      "type": "independent",
-      "title": "SafeCloud CRM security/compliance review",
-      "url": "https://reviews.example.org/safecloud-crm-security"
+      "url": "https://blog.cloudflare.com/cloudflare-outage/",
+      "source_type": "Public Disclosure",
+      "title": "Cloudflare Outage",
+      "date": "2020-07-17",
+      "description": "Details of the Cloudflare outage incident."
     }
   ]
 }
@@ -115,7 +98,10 @@ INPUT_EXAMPLE = {
     "user_id": "5353787fj7ssdfd",
     "user_name": "default_name",
     "role": "CISO",
-    "input": "https://filezilla-project.org",
+  },
+  "input": {
+      "company_name": "Cloudflare, Inc.",
+      "url": "https://www.cloudflare.com/"
   },
   "mode": "single",
   "models": [
