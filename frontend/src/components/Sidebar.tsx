@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 interface SidebarProps {
   isCollapsed: boolean;
@@ -8,14 +9,24 @@ interface SidebarProps {
 }
 
 const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onToggle, onNavigate, activePage }) => {
+  const navigate = useNavigate();
+  const location = useLocation();
   const [activeItem, setActiveItem] = useState<string>(activePage || 'websites');
 
-  // Sync activeItem with activePage prop
+  // Sync activeItem with activePage prop or current route
   useEffect(() => {
     if (activePage) {
       setActiveItem(activePage);
+    } else {
+      // Determine active item from current route
+      const path = location.pathname;
+      if (path === '/networks') {
+        setActiveItem('networks');
+      } else {
+        setActiveItem('websites');
+      }
     }
-  }, [activePage]);
+  }, [activePage, location.pathname]);
 
   const navigationItems = [
     {
@@ -40,6 +51,13 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onToggle, onNavigate, ac
 
   const handleItemClick = (itemId: string) => {
     setActiveItem(itemId);
+    // Use React Router navigation
+    if (itemId === 'websites') {
+      navigate('/websites');
+    } else if (itemId === 'networks') {
+      navigate('/networks');
+    }
+    // Still call onNavigate for backward compatibility
     if (onNavigate) {
       onNavigate(itemId);
     }
