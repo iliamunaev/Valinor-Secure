@@ -19,6 +19,8 @@ interface SecurityData {
 interface ChatPanelProps {
   isSidebarCollapsed?: boolean;
   onAssessmentComplete?: (data: SecurityData) => void;
+  isTeamSelected?: boolean;
+  onTeamSelectedChange?: (isTeamSelected: boolean) => void;
 }
 
 interface AssessmentHistoryItem {
@@ -44,7 +46,12 @@ const MODELS: ModelConfig[] = [
   { id: 'gpt-3.5-turbo', name: 'GPT-3.5 Turbo', provider: 'OpenAI' },
 ];
 
-const ChatPanel: React.FC<ChatPanelProps> = ({ isSidebarCollapsed, onAssessmentComplete }) => {
+const ChatPanel: React.FC<ChatPanelProps> = ({
+  isSidebarCollapsed,
+  onAssessmentComplete,
+  isTeamSelected: isTeamSelectedProp = true,
+  onTeamSelectedChange
+}) => {
   const [assessmentHistory, setAssessmentHistory] = useState<AssessmentHistoryItem[]>([]);
   const [inputValue, setInputValue] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -52,7 +59,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ isSidebarCollapsed, onAssessmentC
   const [isLoadingHistory, setIsLoadingHistory] = useState(true);
   const [selectedModel, setSelectedModel] = useState(MODELS[1]); // Default to GPT-4
   const [showModelDropdown, setShowModelDropdown] = useState(false);
-  const [isTeamSelected, setIsTeamSelected] = useState(false);
+  const isTeamSelected = isTeamSelectedProp;
   const [isUserSelected, setIsUserSelected] = useState(false);
   const [showUserTooltip, setShowUserTooltip] = useState(false);
   const [showTeamTooltip, setShowTeamTooltip] = useState(false);
@@ -436,7 +443,9 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ isSidebarCollapsed, onAssessmentC
             <div className="relative">
               <button
                 onClick={() => {
-                  setIsTeamSelected(true);
+                  if (onTeamSelectedChange) {
+                    onTeamSelectedChange(true);
+                  }
                   setIsUserSelected(false);
                 }}
                 onMouseEnter={() => setShowTeamTooltip(true)}
@@ -469,7 +478,9 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ isSidebarCollapsed, onAssessmentC
               <button
                 onClick={() => {
                   setIsUserSelected(true);
-                  setIsTeamSelected(false);
+                  if (onTeamSelectedChange) {
+                    onTeamSelectedChange(false);
+                  }
                 }}
                 onMouseEnter={() => setShowUserTooltip(true)}
                 onMouseLeave={() => setShowUserTooltip(false)}

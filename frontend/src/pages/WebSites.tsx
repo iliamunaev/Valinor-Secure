@@ -70,11 +70,16 @@ interface SecurityData {
 
 export default function WebSites() {
   const [assessmentData, setAssessmentData] = useState<SecurityData | null>(null);
+  const [isTeamSelected, setIsTeamSelected] = useState(true);
 
   return (
-    <BasePageLayout showTeamMembers={true}>
+    <BasePageLayout showTeamMembers={isTeamSelected}>
       {/* Chat Panel */}
-      <ChatPanel onAssessmentComplete={setAssessmentData} />
+      <ChatPanel
+        onAssessmentComplete={setAssessmentData}
+        isTeamSelected={isTeamSelected}
+        onTeamSelectedChange={setIsTeamSelected}
+      />
 
       {/* Main Content */}
       <MainContent assessmentData={assessmentData} />
