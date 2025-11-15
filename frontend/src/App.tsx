@@ -1,8 +1,10 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Sidebar } from './components/Sidebar';
 import { ChatPanel } from './components/ChatPanel';
-import { InspectionPanel } from './components/InspectionPanel';
+// import { InspectionPanelDELETE} from './components/InspectionPanelDELETE';
+import { InspectionPanel} from './components/InspectionPanel';
 import { assess } from "./api/send/sendScan";
+import { getScanHistory } from './api/get/getScanHistory';
 import { API_URL } from "./config";
 import { getUserId } from "./api/send/user";
 
@@ -45,36 +47,66 @@ export default function App() {
       timestamp: new Date(Date.now() - 1000 * 60 * 5),
     },
   ]);
-  const [scanHistory, setScanHistory] = useState<ScanHistory[]>([
-    {
-      id: '1',
-      url: 'https://github.com',
-      securityLevel: 'safe',
-      timestamp: new Date(Date.now() - 1000 * 60 * 10),
-      score: 98,
-    },
-    {
-      id: '2',
-      url: 'https://suspicious-site.com',
-      securityLevel: 'warning',
-      timestamp: new Date(Date.now() - 1000 * 60 * 30),
-      score: 65,
-    },
-    {
-      id: '3',
-      url: 'https://malicious-example.net',
-      securityLevel: 'critical',
-      timestamp: new Date(Date.now() - 1000 * 60 * 60),
-      score: 23,
-    },
-    {
-      id: '4',
-      url: 'https://google.com',
-      securityLevel: 'safe',
-      timestamp: new Date(Date.now() - 1000 * 60 * 90),
-      score: 99,
-    },
-  ]);
+  const [scanHistory, setScanHistory] = useState<ScanHistory[]>([]);
+
+  // Load scan history from backend on component mount
+  useEffect(() => {
+    const loadScanHistory = async () => {
+      try {
+        console.log("Loading scan history from backend...");
+        const assessmentData = await getScanHistory();
+        console.log("Assessment data received:", assessmentData);
+        
+        // Convert ASSESS_EXAMPLE data to scan history format
+        if (assessmentData && assessmentData.meta && assessmentData.summary) {
+          const riskLevelMap: { [key: string]: 'safe' | 'warning' | 'critical' } = {
+            'Low': 'safe',
+            'Medium': 'warning',
+            'High': 'critical'
+          };
+
+          const scanEntry: ScanHistory = {
+            id: '1',
+            url: assessmentData.meta.input || 'https://app.acmecloud.example',
+            securityLevel: riskLevelMap[assessmentData.summary.risk_level] || 'warning',
+            timestamp: new Date(assessmentData.meta.generated_at || Date.now()),
+            score: assessmentData.summary.trust_score || 68
+          };
+
+          setScanHistory([scanEntry]);
+          console.log("Scan history updated:", [scanEntry]);
+        } else {
+          console.log("No valid assessment data found, using empty scan history");
+          setScanHistory([]);
+        }
+      } catch (error) {
+        console.error("Failed to load scan history:", error);
+        // Set empty array on error instead of hardcoded data
+        setScanHistory([]);
+      }
+    };
+
+    loadScanHistory();
+  }, []); // Empty dependency array - load once on mount
+
+  const handleScan = async (url: string) => {
+    try {
+      console.log("Scanning URL:", url);
+      // You can add your scan logic here
+      // For now, let's add it to scan history as a placeholder
+      const newScan: ScanHistory = {
+        id: Date.now().toString(),
+        url: url,
+        securityLevel: 'safe',
+        timestamp: new Date(),
+        score: 85
+      };
+      
+      setScanHistory(prev => [newScan, ...prev]);
+    } catch (error) {
+      console.error("Scan failed:", error);
+    }
+  };
 
   const handleSendMessage = async (url: string, model: string) => {
     setMessages(prev => [...prev, {
@@ -146,8 +178,20 @@ export default function App() {
         <Sidebar activeNav={activeNav} onNavChange={setActiveNav} />
         
         <div className="flex-1 flex overflow-hidden">
-          <ChatPanel messages={messages} onSendMessage={handleSendMessage} />
-          {/* <InspectionPanel scanHistory={scanHistory} onScan={handleScan} /> */}
+        {/* <ChatPanel messages={messages} onSendMessage={handleSendMessage} /> */}
+          {/* <InspectionPanel scanHistory={scanHistory}/> */}
+          <div className="flex-1 flex overflow-hidden">
+          {/* <InspectionPanelDELETE 
+            scanHistory={scanHistory}
+            setScanHistory={setScanHistory}
+           /> */}
+          <InspectionPanel
+            scanHistory={scanHistory}
+            setScanHistory={setScanHistory}
+            onScan={handleScan}
+           />
+          {/* <ChatPanel messages={messages} onSendMessage={handleSendMessage} /> */}
+</div>
         </div>
       </div>
     </div>

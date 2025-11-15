@@ -4,19 +4,65 @@ import { HistoryItem } from './HistoryItem';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { Search, Link as LinkIcon } from 'lucide-react';
-import { ApiTestButtons } from './ApiTestButtons';
+import { getScanHistory } from "../api/get/getScanHistory";
+
+// AI Agents configuration
+const AI_AGENTS = [
+  { id: 'gpt', name: 'GPT-4' },
+  { id: 'claude', name: 'Claude' },
+  { id: 'deepseek', name: 'DeepSeek' },
+];
 
 interface InspectionPanelProps {
   scanHistory: ScanHistory[];
-  onScan: (url: string) => void;
+  setScanHistory: (data: ScanHistory[]) => void;
+  onScan?: (url: string) => void;
 }
 
-export function InspectionPanel({ scanHistory, onScan }: InspectionPanelProps) {
+export function InspectionPanel({ scanHistory, setScanHistory, onScan }: InspectionPanelProps) {
+  const [loading, setLoading] = useState(false);
   const [urlInput, setUrlInput] = useState('');
+  const [selectedAgent, setSelectedAgent] = useState('gpt'); // Default to GPT-4
+
+  const loadHistory = async () => {
+    try {
+      setLoading(true);
+      const data = await getScanHistory();
+      console.log("Assessment report:", data);
+      
+      // Convert assessment data to scan history format
+      if (data && data.meta && data.summary) {
+        const riskLevelMap: { [key: string]: 'safe' | 'warning' | 'critical' } = {
+          'Low': 'safe',
+          'Medium': 'warning',
+          'High': 'critical'
+        };
+
+        const scanEntry: ScanHistory = {
+          id: Date.now().toString(),
+          url: data.meta.input || 'https://app.acmecloud.example',
+          securityLevel: riskLevelMap[data.summary.risk_level] || 'warning',
+          timestamp: new Date(data.meta.generated_at || Date.now()),
+          score: data.summary.trust_score || 68
+        };
+
+        setScanHistory([scanEntry]);
+        console.log("Scan history updated:", [scanEntry]);
+      }
+    } catch (error) {
+      console.error("Error loading history:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleScan = () => {
-    if (urlInput.trim()) {
+    if (urlInput.trim() && onScan) {
       const url = urlInput.startsWith('http') ? urlInput : `https://${urlInput}`;
+      console.log("Scanning URL:", url, "with agent:", selectedAgent);
+      
+      // You can pass the selected agent to your onScan function if needed
+      // For now, we'll just call onScan with the URL
       onScan(url);
       setUrlInput('');
     }
@@ -33,10 +79,26 @@ export function InspectionPanel({ scanHistory, onScan }: InspectionPanelProps) {
       {/* Header */}
       <div className="p-4 border-b border-gray-800">
         <h2 className="text-cyan-400 mb-4">Website Inspector</h2>
-        
+        <div className="p-4 border-b border-gray-800">
+          <div className="bg-gray-800 rounded-lg p-1 inline-flex">
+            {AI_AGENTS.map((agent) => (
+              <button
+                key={agent.id}
+                onClick={() => setSelectedAgent(agent.id)}
+                className={`px-4 py-2 rounded-md transition-all ${
+                  selectedAgent === agent.id
+                    ? 'bg-cyan-500 text-white'
+                    : 'text-gray-400 hover:text-gray-300'
+                }`}
+              >
+                {agent.name}
+              </button>
+            ))}
+          </div>
+      </div>
         {/* URL Input */}
-        <div className="space-y-3">
-          {/* <div className="relative">
+        <div className="space-y-3 mb-4">
+          <div className="relative">
             <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">
               <LinkIcon className="w-4 h-4" />
             </div>
@@ -52,13 +114,22 @@ export function InspectionPanel({ scanHistory, onScan }: InspectionPanelProps) {
           <Button
             onClick={handleScan}
             disabled={!urlInput.trim()}
-            className="w-full bg-cyan-500 hover:bg-cyan-600 text-white"
+            className="w-full bg-cyan-500 hover:bg-cyan-600 text-white disabled:bg-gray-600"
           >
             <Search className="w-4 h-4 mr-2" />
             Scan Website
-          </Button> */}
-		  <ApiTestButtons/>
+          </Button>
         </div>
+
+        {/* Load History Button */}
+        <Button
+          onClick={loadHistory}
+          disabled={loading}
+          className="w-full bg-purple-500 hover:bg-purple-600 text-white disabled:bg-gray-600"
+        >
+          <Search className="w-4 h-4 mr-2" />
+          {loading ? "Loading..." : "Load Scan History"}
+        </Button>
       </div>
 
       {/* History Section */}
@@ -74,11 +145,18 @@ export function InspectionPanel({ scanHistory, onScan }: InspectionPanelProps) {
           ))}
         </div>
 
-        {scanHistory.length === 0 && (
+        {scanHistory.length === 0 && !loading && (
           <div className="text-center py-12 text-gray-500">
             <Search className="w-12 h-12 mx-auto mb-3 opacity-50" />
-            <p>No scans yet</p>
-            <p className="mt-1">Enter a URL above to start</p>
+            <p>No scan history yet</p>
+            <p className="mt-1">Enter a URL above or load history</p>
+          </div>
+        )}
+        
+        {loading && (
+          <div className="text-center py-12 text-gray-500">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-cyan-400 mx-auto mb-3"></div>
+            <p>Loading scan history...</p>
           </div>
         )}
       </div>
