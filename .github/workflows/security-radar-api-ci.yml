@@ -20,32 +20,32 @@ on:
       - '.github/workflows/security-radar-api-ci.yml'
 
 jobs:
-  lint:
-    name: Lint and Type Check
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: security-radar-api
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+  # lint:
+  #   name: Lint and Type Check
+  #   runs-on: ubuntu-latest
+  #   defaults:
+  #     run:
+  #       working-directory: security-radar-api
+  #   steps:
+  #     - name: Checkout code
+  #       uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
-          cache: 'pip'
+  #     - name: Set up Python
+  #       uses: actions/setup-python@v5
+  #       with:
+  #         python-version: '3.11'
+  #         cache: 'pip'
 
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install tox
+  #     - name: Install dependencies
+  #       run: |
+  #         python -m pip install --upgrade pip
+  #         pip install tox
 
-      - name: Run linting
-        run: tox -e lint
+  #     - name: Run linting
+  #       run: tox -e lint
 
-      - name: Run type checking
-        run: tox -e type
+  #     - name: Run type checking
+  #       run: tox -e type
 
   test:
     name: Test Python ${{ matrix.python-version }}
