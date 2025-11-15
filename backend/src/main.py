@@ -114,15 +114,13 @@ INPUT_EXAMPLE = {
     "generated_at": "2025-11-15T10:05:23Z",
     "user_id": "5353787fj7ssdfd",
     "user_name": "default_name",
-    "role": "refault_role",
-    "input": "https://app.acmecloud.example",
+    "role": "CISO",
+    "input": "https://filezilla-project.org",
   },
+  "mode": "single",
   "models": [
     {
       "llm_model": "gpt-4.1-mini"
-    },
-    {
-      "llm_model": "gpt-4-turbo"
     }
   ]
 }
