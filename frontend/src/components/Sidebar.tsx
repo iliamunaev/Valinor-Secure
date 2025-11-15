@@ -15,9 +15,17 @@ export function Sidebar({ activeNav, onNavChange }: SidebarProps) {
     <div className="w-64 bg-gray-900 border-r border-gray-800 flex flex-col">
       <div className="p-6 border-b border-gray-800">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center">
+      {/* <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center">
             <div className="w-6 h-6 border-2 border-white rounded" />
-          </div>
+          </div> */}
+		<img 
+		  src="public/assets/logo.png" 
+		  alt="Logo"
+		  className="w-20 h-20 rounded-lg object-cover"
+		/>
+		  <div>
+			
+		  </div>
           <div>
             <h1 className="text-cyan-400">Valinor</h1>
             <p className="text-gray-400">Security Dashboard</p>
