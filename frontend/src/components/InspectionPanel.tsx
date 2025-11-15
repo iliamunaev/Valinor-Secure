@@ -4,6 +4,7 @@ import { HistoryItem } from './HistoryItem';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { Search, Link as LinkIcon } from 'lucide-react';
+import { ApiTestButtons } from './ApiTestButtons';
 
 interface InspectionPanelProps {
   scanHistory: ScanHistory[];
@@ -35,7 +36,7 @@ export function InspectionPanel({ scanHistory, onScan }: InspectionPanelProps) {
         
         {/* URL Input */}
         <div className="space-y-3">
-          <div className="relative">
+          {/* <div className="relative">
             <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">
               <LinkIcon className="w-4 h-4" />
             </div>
@@ -55,7 +56,8 @@ export function InspectionPanel({ scanHistory, onScan }: InspectionPanelProps) {
           >
             <Search className="w-4 h-4 mr-2" />
             Scan Website
-          </Button>
+          </Button> */}
+		  <ApiTestButtons/>
         </div>
       </div>
 
