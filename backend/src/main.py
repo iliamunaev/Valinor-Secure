@@ -108,6 +108,23 @@ ASSESS_EXAMPLE = {
   ]
 }
 
+INPUT_EXAMPLE = {
+  "meta": {
+    "generated_at": "2025-11-15T10:05:23Z",
+    "user_id": "5353787fj7ssdfd",
+    "user_name": "default_name",
+    "role": "refault_role",
+    "input": "https://app.acmecloud.example",
+  },
+  "models": [
+    {
+      "llm_model": "gpt-4.1-mini"
+    },
+    {
+      "llm_model": "gpt-4-turbo"
+    }
+  ]
+}
 
 app = FastAPI()
 
@@ -126,6 +143,10 @@ app.add_middleware(
 #       "message": "Hello from TEST FastAPI Test! Test!",
 #       "test_backend": os.getenv("TEST_BACKEND", "undefined"),
 #   }
+
+@app.get("/input")
+async def read_input():
+    return JSONResponse(content=INPUT_EXAMPLE)
 
 @app.post("/assess")
 async def assess():
