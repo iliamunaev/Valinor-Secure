@@ -1,6 +1,7 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from pydantic import BaseModel
 import os
 
 ASSESS_EXAMPLE = {
@@ -151,3 +152,56 @@ async def read_input():
 @app.post("/assess")
 async def assess():
     return JSONResponse(content=ASSESS_EXAMPLE)
+
+# Endpoint 1: Read URL from user as input
+class URLInput(BaseModel):
+    url: str
+
+@app.post("/input/url")
+async def read_url(input_data: URLInput):
+    """
+    Endpoint to receive a URL from the user.
+    """
+    return JSONResponse(content={
+        "message": "URL received successfully",
+        "url": input_data.url,
+        "status": "success"
+    })
+
+# Endpoint 2: Get CSV file from user
+@app.post("/input/csv")
+async def upload_csv(file: UploadFile = File(...)):
+    """
+    Endpoint to receive a CSV file from the user.
+    """
+    if not file.filename.endswith('.csv'):
+        return JSONResponse(
+            status_code=400,
+            content={"error": "File must be a CSV file"}
+        )
+
+    contents = await file.read()
+    file_size = len(contents)
+
+    return JSONResponse(content={
+        "message": "CSV file received successfully",
+        "filename": file.filename,
+        "file_size": file_size,
+        "content_type": file.content_type,
+        "status": "success"
+    })
+
+# Endpoint 3: Get string from chat
+class ChatInput(BaseModel):
+    message: str
+
+@app.post("/input/chat")
+async def get_chat_string(input_data: ChatInput):
+    """
+    Endpoint to receive a string message from chat.
+    """
+    return JSONResponse(content={
+        "message": "Chat string received successfully",
+        "chat_message": input_data.message,
+        "status": "success"
+    })
