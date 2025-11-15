@@ -172,13 +172,64 @@ async def upload_csv(file: UploadFile = File(...)):
 class ChatInput(BaseModel):
     message: str
 
+class ChatResponse(BaseModel):
+    message: str
+    status: str
+    timestamp: str
+
+def generate_chat_response(user_message: str) -> str:
+    """
+    Generate a contextual response based on the user's message.
+    This is a placeholder that can be replaced with actual LLM integration.
+    """
+    message_lower = user_message.lower()
+
+    # Simple keyword-based responses
+    if any(word in message_lower for word in ["hello", "hi", "hey", "greetings"]):
+        return "Hello! I'm your security assessment assistant. How can I help you today?"
+
+    elif any(word in message_lower for word in ["help", "what can you do", "capabilities"]):
+        return """I can help you with security assessments! Here's what I can do:
+
+• Analyze vendor security profiles
+• Assess CVE trends and vulnerabilities
+• Check compliance certifications
+• Evaluate trust scores
+• Provide security recommendations
+
+Try asking me to assess a company or upload a CSV file with vendor information."""
+
+    elif any(word in message_lower for word in ["assess", "analyze", "check", "evaluate"]):
+        return "I can help you assess a vendor's security profile. Please provide a company name or URL, or you can upload a CSV file with vendor information to assess multiple vendors at once."
+
+    elif any(word in message_lower for word in ["cloudflare", "vendor", "company"]):
+        return "To assess a vendor like Cloudflare, I'll need their company name and website URL. I can provide information about their security posture, CVE trends, compliance certifications, and trust score."
+
+    elif any(word in message_lower for word in ["csv", "upload", "file", "bulk"]):
+        return "You can upload a CSV file with vendor information for bulk assessment. The CSV should contain columns like company name, website URL, and any other relevant vendor details."
+
+    elif any(word in message_lower for word in ["thank", "thanks"]):
+        return "You're welcome! Let me know if you need anything else."
+
+    else:
+        return f"""I received your message: "{user_message}"
+
+I'm your security assessment assistant. I can help you analyze vendor security profiles, check CVE trends, and evaluate trust scores.
+
+Would you like me to assess a specific vendor, or would you like to know more about my capabilities?"""
+
 @app.post("/input/chat")
 async def get_chat_string(input_data: ChatInput):
     """
-    Endpoint to receive a string message from chat.
+    Endpoint to receive a string message from chat and return a contextual response.
     """
+    from datetime import datetime
+
+    # Generate a response based on the user's message
+    response_message = generate_chat_response(input_data.message)
+
     return JSONResponse(content={
-        "message": "Chat string received successfully",
-        "chat_message": input_data.message,
-        "status": "success"
+        "message": response_message,
+        "status": "success",
+        "timestamp": datetime.now().isoformat()
     })

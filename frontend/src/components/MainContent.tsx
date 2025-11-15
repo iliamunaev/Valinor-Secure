@@ -72,10 +72,24 @@ interface SecurityData {
   }>;
 }
 
-const MainContent: React.FC = () => {
+interface MainContentProps {
+  assessmentData?: SecurityData | null;
+}
+
+const MainContent: React.FC<MainContentProps> = ({ assessmentData: propAssessmentData }) => {
   const [securityData, setSecurityData] = useState<SecurityData | null>(null);
 
+  // Update security data when prop changes
   useEffect(() => {
+    if (propAssessmentData) {
+      setSecurityData(propAssessmentData);
+    }
+  }, [propAssessmentData]);
+
+  useEffect(() => {
+    // Only load fallback data if no assessment data is provided
+    if (propAssessmentData) return;
+
     // Load the security data from the JSON file
     const loadSecurityData = async () => {
       try {
@@ -194,7 +208,7 @@ const MainContent: React.FC = () => {
     };
 
     loadSecurityData();
-  }, []);
+  }, [propAssessmentData]);
 
   const getRiskColor = (riskLevel: string) => {
     switch (riskLevel.toLowerCase()) {
