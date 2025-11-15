@@ -156,99 +156,99 @@ async def assess():
 
 # NOT TESTED ************************
 
-# # Endpoint 1: URL from user as input
-# class URLInput(BaseModel):
-#     url: str
+# Endpoint 1: URL from user as input
+class URLInput(BaseModel):
+    url: str
 
-# @app.post("/input/url")
-# async def read_url(input_data: URLInput):
-#     """
-#     Endpoint to receive a URL from the user.
-#     """
-#     # Generate cache key
-#     cache_key = generate_cache_key("/input/url", {"url": input_data.url})
+@app.post("/input/url")
+async def read_url(input_data: URLInput):
+    """
+    Endpoint to receive a URL from the user.
+    """
+    # Generate cache key
+    cache_key = generate_cache_key("/input/url", {"url": input_data.url})
 
-#     # Check cache
-#     cached_response = await get_cached_response(cache_key)
-#     if cached_response:
-#         return JSONResponse(content=cached_response)
+    # Check cache
+    cached_response = await get_cached_response(cache_key)
+    if cached_response:
+        return JSONResponse(content=cached_response)
 
-#     # Process request
-#     response = {
-#         "message": "URL received successfully",
-#         "url": input_data.url,
-#         "status": "success"
-#     }
+    # Process request
+    response = {
+        "message": "URL received successfully",
+        "url": input_data.url,
+        "status": "success"
+    }
 
-#     # Cache the response
-#     await set_cached_response(cache_key, response)
+    # Cache the response
+    await set_cached_response(cache_key, response)
 
-#     return JSONResponse(content=response)
+    return JSONResponse(content=response)
 
-# # Endpoint 2: Get CSV file from user
-# @app.post("/input/csv")
-# async def upload_csv(file: UploadFile = File(...)):
-#     """
-#     Endpoint to receive a CSV file from the user.
-#     """
-#     if not file.filename.endswith('.csv'):
-#         return JSONResponse(
-#             status_code=400,
-#             content={"error": "File must be a CSV file"}
-#         )
+# Endpoint 2: Get CSV file from user
+@app.post("/input/csv")
+async def upload_csv(file: UploadFile = File(...)):
+    """
+    Endpoint to receive a CSV file from the user.
+    """
+    if not file.filename.endswith('.csv'):
+        return JSONResponse(
+            status_code=400,
+            content={"error": "File must be a CSV file"}
+        )
 
-#     contents = await file.read()
-#     file_size = len(contents)
+    contents = await file.read()
+    file_size = len(contents)
 
-#     # Generate cache key based on filename and file hash
-#     file_hash = hashlib.md5(contents).hexdigest()
-#     cache_key = generate_cache_key("/input/csv", {
-#         "filename": file.filename,
-#         "hash": file_hash
-#     })
+    # Generate cache key based on filename and file hash
+    file_hash = hashlib.md5(contents).hexdigest()
+    cache_key = generate_cache_key("/input/csv", {
+        "filename": file.filename,
+        "hash": file_hash
+    })
 
-#     # Check cache
-#     cached_response = await get_cached_response(cache_key)
-#     if cached_response:
-#         return JSONResponse(content=cached_response)
+    # Check cache
+    cached_response = await get_cached_response(cache_key)
+    if cached_response:
+        return JSONResponse(content=cached_response)
 
-#     response = {
-#         "message": "CSV file received successfully",
-#         "filename": file.filename,
-#         "file_size": file_size,
-#         "content_type": file.content_type,
-#         "status": "success"
-#     }
+    response = {
+        "message": "CSV file received successfully",
+        "filename": file.filename,
+        "file_size": file_size,
+        "content_type": file.content_type,
+        "status": "success"
+    }
 
-#     # Cache the response
-#     await set_cached_response(cache_key, response)
+    # Cache the response
+    await set_cached_response(cache_key, response)
 
-#     return JSONResponse(content=response)
+    return JSONResponse(content=response)
 
-# # Endpoint 3: Get string from chat
-# class ChatInput(BaseModel):
-#     message: str
+# Endpoint 3: Get string from chat
+class ChatInput(BaseModel):
+    message: str
 
-# @app.post("/input/chat")
-# async def get_chat_string(input_data: ChatInput):
-#     """
-#     Endpoint to receive a string message from chat.
-#     """
-#     # Generate cache key
-#     cache_key = generate_cache_key("/input/chat", {"message": input_data.message})
+@app.post("/input/chat")
+async def get_chat_string(input_data: ChatInput):
+    """
+    Endpoint to receive a string message from chat.
+    """
+    # Generate cache key
+    cache_key = generate_cache_key("/input/chat", {"message": input_data.message})
 
-#     # Check cache
-#     cached_response = await get_cached_response(cache_key)
-#     if cached_response:
-#         return JSONResponse(content=cached_response)
+    # Check cache
+    cached_response = await get_cached_response(cache_key)
+    if cached_response:
+        return JSONResponse(content=cached_response)
 
-#     response = {
-#         "message": "Chat string received successfully",
-#         "chat_message": input_data.message,
-#         "status": "success"
-#     }
+    response = {
+        "message": "Chat string received successfully",
+        "chat_message": input_data.message,
+        "status": "success"
+    }
 
-#     # Cache the response
-#     await set_cached_response(cache_key, response)
+    # Cache the response
+    await set_cached_response(cache_key, response)
 
-#     return JSONResponse(content=response)
+    return JSONResponse(content=response)
