@@ -1,11 +1,7 @@
-import React, { useState, useEffect } from 'react';
-import { useLocation } from 'react-router-dom';
-import Sidebar from '../components/Sidebar';
+import { useState } from 'react';
+import BasePageLayout from '../layouts/BasePageLayout';
 import MainContent from '../components/MainContent';
 import ChatPanel from '../components/ChatPanel';
-import Header from '../components/Header';
-import Networks from './Networks';
-import { ThemeProvider } from '../contexts/ThemeContext';
 
 interface SecurityData {
   meta: {
@@ -41,7 +37,7 @@ interface SecurityData {
   };
   incidents: {
     known_incidents_last_24m: string;
-    items: any[];
+    items: unknown[];
     comment: string;
   };
   data_compliance: {
@@ -72,59 +68,16 @@ interface SecurityData {
   }>;
 }
 
-export default function Index() {
-  const location = useLocation();
-  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+export default function WebSites() {
   const [assessmentData, setAssessmentData] = useState<SecurityData | null>(null);
-  const [activePage, setActivePage] = useState<string>('websites');
-
-  // Sync activePage with current route
-  useEffect(() => {
-    const path = location.pathname;
-    if (path === '/networks') {
-      setActivePage('networks');
-    } else {
-      setActivePage('websites');
-    }
-  }, [location.pathname]);
-
-  const handleNavigate = (page: string) => {
-    setActivePage(page);
-  };
 
   return (
-    <ThemeProvider>
-      <div className="min-h-screen bg-gray-100 dark:bg-gray-900 transition-colors duration-200">
-        {/* Global Header */}
-        <Header />
+    <BasePageLayout showTeamMembers={true}>
+      {/* Chat Panel */}
+      <ChatPanel onAssessmentComplete={setAssessmentData} />
 
-        {/* Main Layout - use fixed height calculation */}
-        <div className="flex fixed top-16 left-0 right-0 bottom-0">
-          {/* Sidebar */}
-          <Sidebar
-            isCollapsed={isSidebarCollapsed}
-            onToggle={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
-            onNavigate={handleNavigate}
-            activePage={activePage}
-          />
-
-          {/* Conditional Content based on active page */}
-          {activePage === 'websites' ? (
-            <>
-              {/* Chat Panel */}
-              <ChatPanel
-                isSidebarCollapsed={isSidebarCollapsed}
-                onAssessmentComplete={setAssessmentData}
-              />
-
-              {/* Main Content */}
-              <MainContent assessmentData={assessmentData} />
-            </>
-          ) : activePage === 'networks' ? (
-            <Networks />
-          ) : null}
-        </div>
-      </div>
-    </ThemeProvider>
+      {/* Main Content */}
+      <MainContent assessmentData={assessmentData} />
+    </BasePageLayout>
   );
 }

@@ -17,7 +17,7 @@ interface SecurityData {
 }
 
 interface ChatPanelProps {
-  isSidebarCollapsed: boolean;
+  isSidebarCollapsed?: boolean;
   onAssessmentComplete?: (data: SecurityData) => void;
 }
 
