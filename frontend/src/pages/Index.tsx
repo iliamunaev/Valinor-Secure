@@ -3,6 +3,7 @@ import Sidebar from '../components/Sidebar';
 import MainContent from '../components/MainContent';
 import ChatPanel from '../components/ChatPanel';
 import Header from '../components/Header';
+import Networks from './Networks';
 import { ThemeProvider } from '../contexts/ThemeContext';
 
 interface SecurityData {
@@ -73,6 +74,11 @@ interface SecurityData {
 export default function Index() {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [assessmentData, setAssessmentData] = useState<SecurityData | null>(null);
+  const [activePage, setActivePage] = useState<string>('websites');
+
+  const handleNavigate = (page: string) => {
+    setActivePage(page);
+  };
 
   return (
     <ThemeProvider>
@@ -86,16 +92,25 @@ export default function Index() {
           <Sidebar
             isCollapsed={isSidebarCollapsed}
             onToggle={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+            onNavigate={handleNavigate}
+            activePage={activePage}
           />
 
-          {/* Chat Panel */}
-          <ChatPanel
-            isSidebarCollapsed={isSidebarCollapsed}
-            onAssessmentComplete={setAssessmentData}
-          />
+          {/* Conditional Content based on active page */}
+          {activePage === 'websites' ? (
+            <>
+              {/* Chat Panel */}
+              <ChatPanel
+                isSidebarCollapsed={isSidebarCollapsed}
+                onAssessmentComplete={setAssessmentData}
+              />
 
-          {/* Main Content */}
-          <MainContent assessmentData={assessmentData} />
+              {/* Main Content */}
+              <MainContent assessmentData={assessmentData} />
+            </>
+          ) : activePage === 'networks' ? (
+            <Networks />
+          ) : null}
         </div>
       </div>
     </ThemeProvider>

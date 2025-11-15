@@ -54,6 +54,8 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ isSidebarCollapsed, onAssessmentC
   const [showModelDropdown, setShowModelDropdown] = useState(false);
   const [isTeamSelected, setIsTeamSelected] = useState(false);
   const [isUserSelected, setIsUserSelected] = useState(false);
+  const [showUserTooltip, setShowUserTooltip] = useState(false);
+  const [showTeamTooltip, setShowTeamTooltip] = useState(false);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
 
   // Close dropdown when clicking outside
@@ -431,38 +433,68 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ isSidebarCollapsed, onAssessmentC
             </button>
 
             {/* Team/Group button */}
-            <button
-              onClick={() => {
-                setIsTeamSelected(true);
-                setIsUserSelected(false);
-              }}
-              className={`p-1.5 rounded-lg transition-colors ${
-                isTeamSelected
-                  ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400'
-                  : 'text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
-              }`}
-            >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-              </svg>
-            </button>
+            <div className="relative">
+              <button
+                onClick={() => {
+                  setIsTeamSelected(true);
+                  setIsUserSelected(false);
+                }}
+                onMouseEnter={() => setShowTeamTooltip(true)}
+                onMouseLeave={() => setShowTeamTooltip(false)}
+                className={`p-1.5 rounded-lg transition-colors ${
+                  isTeamSelected
+                    ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400'
+                    : 'text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+                }`}
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                </svg>
+              </button>
+
+              {/* Custom Tooltip */}
+              {showTeamTooltip && (
+                <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-1.5 bg-gray-900 text-white text-sm font-medium rounded-lg whitespace-nowrap pointer-events-none z-50">
+                  Team
+                  {/* Tooltip arrow */}
+                  <div className="absolute top-full left-1/2 transform -translate-x-1/2 -mt-px">
+                    <div className="border-4 border-transparent border-t-gray-900"></div>
+                  </div>
+                </div>
+              )}
+            </div>
 
             {/* User button */}
-            <button
-              onClick={() => {
-                setIsUserSelected(true);
-                setIsTeamSelected(false);
-              }}
-              className={`p-1.5 rounded-lg transition-colors ${
-                isUserSelected
-                  ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400'
-                  : 'text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
-              }`}
-            >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-              </svg>
-            </button>
+            <div className="relative">
+              <button
+                onClick={() => {
+                  setIsUserSelected(true);
+                  setIsTeamSelected(false);
+                }}
+                onMouseEnter={() => setShowUserTooltip(true)}
+                onMouseLeave={() => setShowUserTooltip(false)}
+                className={`p-1.5 rounded-lg transition-colors ${
+                  isUserSelected
+                    ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400'
+                    : 'text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+                }`}
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                </svg>
+              </button>
+
+              {/* Custom Tooltip */}
+              {showUserTooltip && (
+                <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-1.5 bg-gray-900 text-white text-sm font-medium rounded-lg whitespace-nowrap pointer-events-none z-50">
+                  Engineer
+                  {/* Tooltip arrow */}
+                  <div className="absolute top-full left-1/2 transform -translate-x-1/2 -mt-px">
+                    <div className="border-4 border-transparent border-t-gray-900"></div>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
 
           <div className="flex items-center space-x-2">

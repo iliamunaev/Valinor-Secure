@@ -1,12 +1,21 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 interface SidebarProps {
   isCollapsed: boolean;
   onToggle: () => void;
+  onNavigate?: (page: string) => void;
+  activePage?: string;
 }
 
-const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onToggle }) => {
-  const [activeItem, setActiveItem] = useState<string>('websites');
+const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onToggle, onNavigate, activePage }) => {
+  const [activeItem, setActiveItem] = useState<string>(activePage || 'websites');
+
+  // Sync activeItem with activePage prop
+  useEffect(() => {
+    if (activePage) {
+      setActiveItem(activePage);
+    }
+  }, [activePage]);
 
   const navigationItems = [
     {
@@ -14,16 +23,16 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onToggle }) => {
       label: 'WebSites',
       icon: (
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9v-9m0-9v9" />
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
         </svg>
       )
     },
     {
-      id: 'applications',
+      id: 'networks',
       label: 'Networks',
       icon: (
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 12h14M5 12a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2M5 12a2 2 0 00-2 2v4a2 2 0 002 2h14a2 2 0 002-2v-4a2 2 0 00-2-2m-2-4h.01M17 16h.01" />
         </svg>
       )
     }
@@ -31,6 +40,9 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onToggle }) => {
 
   const handleItemClick = (itemId: string) => {
     setActiveItem(itemId);
+    if (onNavigate) {
+      onNavigate(itemId);
+    }
   };
 
   return (
@@ -71,18 +83,9 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onToggle }) => {
         </button>
       </div>
 
-      {/* New Chat Button */}
-      <div className="p-4">
-        <button className={`w-full bg-purple-100 dark:bg-purple-900 text-purple-700 dark:text-purple-300 py-2 px-4 rounded-lg flex items-center hover:bg-purple-200 dark:hover:bg-purple-800 transition-colors ${
-          isCollapsed ? 'justify-center' : 'space-x-2'
-        }`}>
-          <span className="text-lg">+</span>
-          {!isCollapsed && <span>New Chat</span>}
-        </button>
-      </div>
 
       {/* Navigation Items */}
-      <div className="flex-1 px-4 overflow-hidden">
+      <div className="flex-1 px-4 pt-6 overflow-hidden">
         {!isCollapsed && (
           <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-4">Navigation</h3>
         )}
