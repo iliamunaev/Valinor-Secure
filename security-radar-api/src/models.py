@@ -114,6 +114,7 @@ class AssessmentRequest(BaseModel):
     company_name: Optional[str] = Field(None, description="Vendor/company name")
     url: Optional[str] = Field(None, description="Product or vendor URL")
     sha1: Optional[str] = Field(None, description="SHA-1 hash of binary")
+    model: Optional[str] = Field(None, description="LLM model to use (e.g., 'gpt-4', 'claude-3-5-sonnet-20241022')")
     force_refresh: bool = Field(default=False, description="Force refresh from cache")
 
     class Config:

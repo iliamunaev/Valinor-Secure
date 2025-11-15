@@ -4,14 +4,17 @@ AI Security Assessor FastAPI Service
 This service provides endpoints for assessing software applications' security posture.
 """
 
-from fastapi import FastAPI, HTTPException, UploadFile, File
+from fastapi import FastAPI, HTTPException, UploadFile, File, Request
 from fastapi.middleware.cors import CORSMiddleware
 from typing import Optional
 import uvicorn
+import time
 
 from .models import AssessmentRequest, AssessmentResponse
 from .cache_service import CacheService
 from .assessor import SecurityAssessor
+from .config import settings
+from .request_logger import get_logger
 
 app = FastAPI(
     title="AI Security Assessor",
@@ -31,6 +34,7 @@ app.add_middleware(
 # Initialize services
 cache_service = CacheService()
 assessor = SecurityAssessor(cache_service)
+request_logger = get_logger() if settings.enable_request_logging else None
 
 
 @app.get("/")
@@ -63,6 +67,7 @@ async def assess_application(request: AssessmentRequest):
     - company_name: Vendor/company name (optional)
     - url: Product or vendor URL (optional)
     - sha1: Binary hash for verification (optional)
+    - model: LLM model to use (optional, defaults to gpt-4)
 
     Returns a comprehensive security assessment with:
     - Entity resolution and vendor identity
@@ -72,16 +77,42 @@ async def assess_application(request: AssessmentRequest):
     - Trust/risk score (0-100) with rationale
     - Suggested alternatives
     """
+    start_time = time.time()
+    request_id = None
+    status_code = 200
+    error_msg = None
+
+    # Log the incoming request
+    if request_logger:
+        request_id = request_logger.log_request(
+            endpoint="/assess",
+            method="POST",
+            request_data=request.model_dump()
+        )
+
     try:
         # Check cache first
         cache_key = assessor.generate_cache_key(request)
         cached_result = cache_service.get(cache_key)
 
         if cached_result:
-            return cached_result
+            assessment = AssessmentResponse(**cached_result)
+
+            # Log response
+            if request_logger and request_id:
+                duration_ms = (time.time() - start_time) * 1000
+                request_logger.log_response(
+                    request_id=request_id,
+                    status_code=status_code,
+                    response_data={"cached": True, "product": assessment.product_name},
+                    duration_ms=duration_ms,
+                    model_used=request.model or settings.llm_model
+                )
+
+            return assessment
 
         # Perform new assessment
-        assessment = await assessor.assess(request)
+        assessment = await assessor.assess(request, request_id=request_id)
 
         # Cache the result
         cache_service.set(
@@ -93,10 +124,41 @@ async def assess_application(request: AssessmentRequest):
             url=request.url
         )
 
+        # Log successful response
+        if request_logger and request_id:
+            duration_ms = (time.time() - start_time) * 1000
+            request_logger.log_response(
+                request_id=request_id,
+                status_code=status_code,
+                response_data={
+                    "product_name": assessment.product_name,
+                    "vendor": assessment.vendor.name,
+                    "category": assessment.category.value,
+                    "trust_score": assessment.trust_score.score,
+                    "cached": False
+                },
+                duration_ms=duration_ms,
+                model_used=request.model or settings.llm_model
+            )
+
         return assessment
 
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Assessment failed: {str(e)}")
+        status_code = 500
+        error_msg = str(e)
+
+        # Log error response
+        if request_logger and request_id:
+            duration_ms = (time.time() - start_time) * 1000
+            request_logger.log_response(
+                request_id=request_id,
+                status_code=status_code,
+                response_data={"error": error_msg},
+                duration_ms=duration_ms,
+                error=error_msg
+            )
+
+        raise HTTPException(status_code=status_code, detail=f"Assessment failed: {error_msg}")
 
 
 @app.post("/assess/file")
@@ -139,6 +201,25 @@ async def list_cached_assessments(limit: int = 20, offset: int = 0):
         "limit": limit,
         "offset": offset,
         "assessments": cached_items
+    }
+
+
+@app.get("/logs/stats")
+async def get_log_stats():
+    """
+    Get statistics about the request log file.
+    Returns information about log size, request count, etc.
+    """
+    if not request_logger:
+        return {
+            "enabled": False,
+            "message": "Request logging is disabled"
+        }
+
+    stats = request_logger.get_log_stats()
+    return {
+        "enabled": True,
+        **stats
     }
 
 

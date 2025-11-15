@@ -20,6 +20,10 @@ class Settings(BaseSettings):
     cache_db_path: str = "assessment_cache.db"
     cache_ttl_days: int = 30
 
+    # Logging Configuration
+    request_log_file: str = "api_request_log.txt"
+    enable_request_logging: bool = True
+
     # Assessment Configuration
     default_trust_score: int = 50
     min_confidence_threshold: float = 0.5
