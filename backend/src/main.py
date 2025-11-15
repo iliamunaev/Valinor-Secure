@@ -136,13 +136,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# @app.get("/api/hello")
-# def read_root():
-#   return {
-#       "message": "Hello from TEST FastAPI Test! Test!",
-#       "test_backend": os.getenv("TEST_BACKEND", "undefined"),
-#   }
-
 @app.get("/input")
 async def read_input():
     return JSONResponse(content=INPUT_EXAMPLE)
