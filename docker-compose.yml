@@ -13,6 +13,8 @@ services:
     volumes:
       - ./backend/src:/app/src
       - ./backend/requirements.txt:/app/requirements.txt:ro
+    networks:
+      - valinor-network
 
   frontend:
     build:
@@ -39,6 +41,43 @@ services:
       timeout: 3s
       retries: 5
       start_period: 10s
+    networks:
+      - valinor-network
+
+  security-radar-api:
+    build:
+      context: ./security-radar-api
+      dockerfile: Dockerfile
+    # image: ai-security-assessor:latest
+    container_name: security-radar-api
+    ports:
+      - "8088:8088"
+    environment:
+      - APP_NAME=AI Security Assessor
+      - API_HOST=0.0.0.0
+      - API_PORT=8088
+      - DEBUG=False
+      - CACHE_DB_PATH=/app/data/assessment_cache.db
+    volumes:
+      # Persist cache database
+      - cache_data:/app/data
+      # Optional: mount local .env file
+      # - ./.env:/app/.env:ro
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import requests; requests.get('http://localhost:8088/health')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 5s
+    networks:
+      - valinor-network
 
 volumes:
   frontend_node_modules:
+  cache_data:
+    driver: local
+
+networks:
+  valinor-network:
+    driver: bridge
