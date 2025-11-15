@@ -2,8 +2,26 @@ from fastapi import FastAPI, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
+
 import hashlib
 from cache import init_redis, close_redis, generate_cache_key, get_cached_response, set_cached_response
+import os
+from typing import List
+
+class MetaModel(BaseModel):
+    generated_at: str
+    user_id: str
+    user_name: str
+    role: str
+    input: str
+
+class ModelItem(BaseModel):
+    llm_model: str
+
+class InputPayload(BaseModel):
+    meta: MetaModel
+    mode: str
+    models: List[ModelItem]
 
 ASSESS_EXAMPLE = {
   "meta": {
@@ -109,22 +127,7 @@ ASSESS_EXAMPLE = {
     }
   ]
 }
-
-INPUT_EXAMPLE = {
-  "meta": {
-    "generated_at": "2025-11-15T10:05:23Z",
-    "user_id": "5353787fj7ssdfd",
-    "user_name": "default_name",
-    "role": "CISO",
-    "input": "https://filezilla-project.org",
-  },
-  "mode": "single",
-  "models": [
-    {
-      "llm_model": "gpt-4.1-mini"
-    }
-  ]
-}
+#need to send it to user
 
 app = FastAPI()
 
@@ -145,6 +148,18 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+@app.post("/input")
+async def receive_input(payload: InputPayload):
+    """
+    Receives the real INPUT_EXAMPLE-like JSON from frontend.
+    """
+    print("📥 Received /input payload:", payload.dict())
+
+    return JSONResponse(content={
+        "status": "ok",
+        "received": payload.dict()
+    })
+
 
 # @app.get("/input")
 # async def read_input():
@@ -161,61 +176,61 @@ app.add_middleware(
 
 # NOT TESTED ************************
 
-# Endpoint 1: URL from user as input
-class URLInput(BaseModel):
-    url: str
+# # Endpoint 1: URL from user as input
+# class URLInput(BaseModel):
+#     url: str
 
-@app.post("/input")
-async def read_url(input_data: URLInput):
-    """
-    Endpoint to receive a URL from the user.
-    """
-    cache_key = generate_cache_key("/input", {"url": input_data.url})
+# @app.post("/input")
+# async def read_url(input_data: URLInput):
+#     """
+#     Endpoint to receive a URL from the user.
+#     """
+#     cache_key = generate_cache_key("/input", {"url": input_data.url})
 
-    # Check cache
-    cached_response = await get_cached_response(cache_key)
-    if cached_response:
-        return JSONResponse(content=cached_response)
+#     # Check cache
+#     cached_response = await get_cached_response(cache_key)
+#     if cached_response:
+#         return JSONResponse(content=cached_response)
 
-    # Process request
-    response = {
-        "message": "URL received successfully",
-        "url": input_data.url,
-        "status": "success"
-    }
+#     # Process request
+#     response = {
+#         "message": "URL received successfully",
+#         "url": input_data.url,
+#         "status": "success"
+#     }
 
-    # Cache the response
-    await set_cached_response(cache_key, response)
+#     # Cache the response
+#     await set_cached_response(cache_key, response)
 
-    return JSONResponse(content=response)
+#     return JSONResponse(content=response)
 
-class AssessInput(BaseModel):
-    url: str
-    # or other input fields
+# class AssessInput(BaseModel):
+#     url: str
+#     # or other input fields
 
-# Mock function for AI assessment
-async def run_ai_assessment(url: str):
-    """Mock AI assessment workflow - replace with actual implementation"""
-    # TODO: Implement actual AI workflow
-    return ASSESS_EXAMPLE
+# # Mock function for AI assessment
+# async def run_ai_assessment(url: str):
+#     """Mock AI assessment workflow - replace with actual implementation"""
+#     # TODO: Implement actual AI workflow
+#     return ASSESS_EXAMPLE
 
-@app.post("/assess")
-async def assess(input_data: AssessInput):
-    # Generate cache key
-    cache_key = generate_cache_key("/assess", {"url": input_data.url})
+# @app.post("/assess")
+# async def assess(input_data: AssessInput):
+#     # Generate cache key
+#     cache_key = generate_cache_key("/assess", {"url": input_data.url})
 
-    # Check cache first
-    cached_response = await get_cached_response(cache_key)
-    if cached_response:
-        return JSONResponse(content=cached_response)
+#     # Check cache first
+#     cached_response = await get_cached_response(cache_key)
+#     if cached_response:
+#         return JSONResponse(content=cached_response)
 
-    # Run AI workflow here
-    response = await run_ai_assessment(input_data.url)
+#     # Run AI workflow here
+#     response = await run_ai_assessment(input_data.url)
 
-    # Cache the response
-    await set_cached_response(cache_key, response)
+#     # Cache the response
+#     await set_cached_response(cache_key, response)
 
-    return JSONResponse(content=response)
+#     return JSONResponse(content=response)
 
 
 # # Endpoint 2: Get CSV file from user
