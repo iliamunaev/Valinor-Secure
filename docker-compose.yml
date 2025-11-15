@@ -1,4 +1,17 @@
 services:
+  nginx-proxy:
+    build: ./nginx-proxy
+    container_name: valinor-nginx-proxy
+    ports:
+      - "8080:80"
+    depends_on:
+      - backend
+      - frontend
+      - security-radar-api
+    restart: unless-stopped
+    networks:
+      - valinor-network
+
   backend:
     build: ./backend
     container_name: valinor-backend
