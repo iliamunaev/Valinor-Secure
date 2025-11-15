@@ -172,13 +172,40 @@ def main():
     except Exception as e:
         print(f"✗ Assessment failed: {e}")
 
-    # Example 3: List cached assessments
-    print("\n📋 Example 3: Listing cached assessments...")
+    # Example 3: Cache retrieval workflow
+    print("\n📋 Example 3: Cache Retrieval Workflow...")
+    try:
+        # Step 1: Perform assessment
+        print("  Step 1: Performing assessment...")
+        result = client.assess(
+            product_name="Slack",
+            company_name="Slack Technologies Inc."
+        )
+        cache_key = result.get('cache_key')
+        print(f"  ✓ Assessment complete. Cache key: {cache_key[:32]}...")
+
+        # Step 2: Retrieve from cache using the cache_key
+        print(f"\n  Step 2: Retrieving from cache using cache_key...")
+        cached = client.get_cached(cache_key)
+        print(f"  ✓ Retrieved from cache!")
+        print(f"     Product: {cached['product_name']}")
+        print(f"     Trust Score: {cached['trust_score']['score']}/100")
+
+        if '_cache_metadata' in cached:
+            print(f"     Cached At: {cached['_cache_metadata']['cached_at']}")
+            print(f"     Access Count: {cached['_cache_metadata']['access_count']}")
+    except Exception as e:
+        print(f"✗ Cache workflow failed: {e}")
+
+    # Example 4: List cached assessments
+    print("\n📋 Example 4: Listing all cached assessments...")
     try:
         cached = client.list_cached(limit=5)
         print(f"Found {cached['total']} cached assessments:")
         for item in cached['assessments']:
-            print(f"  • {item['product_name']} ({item['company_name']}) - {item['cached_at']}")
+            print(f"  • {item['product_name']} ({item.get('company_name', 'N/A')}) - {item['cached_at']}")
+            print(f"    Cache Key: {item['cache_key'][:32]}...")
+            print(f"    Access Count: {item['access_count']}")
     except Exception as e:
         print(f"✗ Failed to list cache: {e}")
 

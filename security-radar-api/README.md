@@ -442,6 +442,61 @@ pytest --cov=src --cov-report=term
 - `tests/test_api.py` - Tests for API endpoints (16 tests)
 - `tests/test_integration.py` - End-to-end integration tests (10 tests)
 
+### Testing with Tox
+
+Tox is configured for testing across multiple Python versions and environments:
+
+```bash
+# Install development dependencies (includes tox)
+pip install -r requirements-dev.txt
+
+# Run tests on default Python version
+tox
+
+# Run tests on specific Python version
+tox -e py311          # Python 3.11
+tox -e py312          # Python 3.12
+tox -e py310          # Python 3.10
+
+# Run specific test environments
+tox -e unit           # Unit tests only
+tox -e integration    # Integration tests only
+tox -e coverage       # Tests with coverage report
+tox -e quick          # Quick smoke tests
+
+# Code quality checks
+tox -e lint           # Run linting (flake8)
+tox -e format         # Check code formatting (black)
+tox -e format-fix     # Apply code formatting
+tox -e type           # Type checking (mypy)
+
+# Run all environments in parallel
+tox -p auto
+
+# Using the tox runner script
+./run_tox.sh              # Run default tests
+./run_tox.sh coverage     # Run with coverage
+./run_tox.sh all          # Run all environments
+./run_tox.sh lint         # Run linting
+
+# Pass additional arguments to pytest
+tox -e unit -- -v -k test_specific
+tox -e coverage -- --verbose
+```
+
+**Available tox environments:**
+- `py311, py312, py310` - Test on different Python versions
+- `unit` - Run unit tests only
+- `integration` - Run integration tests only
+- `coverage` - Generate coverage reports
+- `lint` - Code linting with flake8
+- `format` - Check code formatting with black
+- `format-fix` - Auto-format code with black
+- `type` - Type checking with mypy
+- `quick` - Quick smoke tests
+- `clean` - Clean build artifacts
+- `dev` - Development environment setup
+
 ### Code Quality
 
 ```bash
