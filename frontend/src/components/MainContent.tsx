@@ -301,7 +301,7 @@ const MainContent: React.FC = () => {
 
           {/* Main Tabs */}
           <Tabs defaultValue="overview" className="w-full">
-            <TabsList className="grid w-full grid-cols-5 bg-gray-800 border-gray-700 gap-5 mb-5">
+            <TabsList className="grid w-full grid-cols-5 border-gray-700 gap-4 mb-5">
               <TabsTrigger value="overview">Overview</TabsTrigger>
               <TabsTrigger value="vulnerabilities">Vulnerabilities</TabsTrigger>
               <TabsTrigger value="compliance">Compliance</TabsTrigger>

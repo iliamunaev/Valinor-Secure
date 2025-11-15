@@ -5,6 +5,7 @@ import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { Search, Link as LinkIcon } from 'lucide-react';
 import { getScanHistory } from "../api/get/getScanHistory";
+import { IconButton } from '../ui/icon-button';
 
 // AI Agents configuration
 export const AI_AGENTS = [
@@ -94,30 +95,21 @@ export function InspectionPanel({ scanHistory, setScanHistory, onScan }: Inspect
       </div>
       
       {/* AI Agent Selection */}
-      <div className="p-4">
-          <div className="rounded-lg p-1 inline-flex">
+      <div className="p-4 border-b border-gray-800">
+          <div className="flex gap-3 justify-center">
             {AI_AGENTS.map((agent) => (
-            //   <button
-            //     key={agent.id}
-            //     onClick={() => setSelectedAgent(agent.id)}
-            //     className={`px-4 py-2 rounded-md transition-all ${
-            //       selectedAgent === agent.id
-            //         ? 'bg-cyan-500 text-white'
-            //         : 'text-gray-400 hover:text-gray-300'
-            //     }`}
-            //   >
-            //     {agent.name}
-            //   </button>
-			<button
-			  key={agent.id}
-			  onClick={() => setSelectedAgent(agent.id)}
-			  className="px-3 py-2 rounded-md flex items-center gap-2 transition-all bg-transparent border-none hover:bg-transparent"
-			>
-			  <img 
-			    src={agent.icon}
-			    className="w-5 h-5 object-contain"
-			  />
-			</button>
+              <IconButton
+                key={agent.id}
+                onClick={() => setSelectedAgent(agent.id)}
+                isActive={selectedAgent === agent.id}
+                className="p-0"
+              >
+                <img 
+                  src={agent.icon}
+                  alt={agent.id}
+                  className="w-8 h-8 object-contain"
+                />
+              </IconButton>
             ))}
           </div>
       </div>
@@ -142,22 +134,20 @@ export function InspectionPanel({ scanHistory, setScanHistory, onScan }: Inspect
           <Button
             onClick={handleScan}
             disabled={!urlInput.trim()}
-            className="w-full bg-cyan-500 hover:bg-cyan-600 text-white disabled:bg-gray-600"
+            className="w-full"
           >
             <Search className="w-4 h-4 mr-2" />
             Scan Website
           </Button>
         </div>
-
-        {/* Load History Button */}
-        <Button
+        {/* <Button
           onClick={loadHistory}
           disabled={loading}
-          className="w-full bg-purple-500 hover:bg-purple-600 text-white disabled:bg-gray-600"
+          className="w-full"
         >
           <Search className="w-4 h-4 mr-2" />
           {loading ? "Loading..." : "Load Scan History"}
-        </Button>
+        </Button> */}
       </div>
 
       {/* History Section */}

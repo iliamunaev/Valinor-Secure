@@ -132,17 +132,19 @@ export default function App() {
   };
   return (
     <div className="min-h-screen w-screen bg-gray-950 text-gray-100">
-      <div className="flex h-screen overflow-hidden">
-        <Sidebar activeNav={activeNav} onNavChange={setActiveNav} className="mr-5">
-        </Sidebar>
-        
-        <div className="flex-1 flex overflow-hidden">
-          <InspectionPanel
-            scanHistory={scanHistory}
-            setScanHistory={setScanHistory}
-            onScan={handleScan}
-          />
-          <MainContent />
+      <div className="flex justify-center h-screen overflow-hidden">
+        <div className="flex w-full max-w-[1920px] overflow-hidden">
+          <Sidebar activeNav={activeNav} onNavChange={setActiveNav}>
+          </Sidebar>
+          
+          <div className="flex-1 flex overflow-hidden">
+            <InspectionPanel
+              scanHistory={scanHistory}
+              setScanHistory={setScanHistory}
+              onScan={handleScan}
+            />
+            <MainContent />
+          </div>
         </div>
       </div>
     </div>

@@ -49,18 +49,6 @@ export function Sidebar({ activeNav, onNavChange }: SidebarProps) {
           );
         })}
       </nav>
-
-      <div className="p-4 border-t border-gray-800">
-        <div className="bg-gray-800 rounded-lg p-4 border border-gray-700">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-gray-400">Threat Level</span>
-            <span className="text-green-400">Low</span>
-          </div>
-          <div className="w-full bg-gray-700 rounded-full h-2">
-            <div className="bg-gradient-to-r from-green-500 to-cyan-500 h-2 rounded-full w-1/4" />
-          </div>
-        </div>
-      </div>
     </div>
   );
 }
