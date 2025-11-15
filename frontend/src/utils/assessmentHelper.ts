@@ -100,7 +100,7 @@ export function parseAssessmentRequest(message: string): AssessmentRequest | nul
   return {
     product_name: productName,
     company_name: companyName || undefined,
-    model: 'claude-3-sonnet-20240229', // Use Claude instead of GPT-4
+    // Model will be set by user selection in ChatPanel
   };
 }
 
@@ -109,28 +109,8 @@ export function parseAssessmentRequest(message: string): AssessmentRequest | nul
  * Falls back to mock endpoint if the real API fails
  */
 export async function assessProduct(request: AssessmentRequest): Promise<AssessmentResponse> {
-  try {
-    // Try the real security-radar-api first
-    const response = await fetch(API_ENDPOINTS.SECURITY_RADAR_ASSESS, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(request),
-    });
-
-    if (response.ok) {
-      return await response.json();
-    }
-
-    // If it fails, fall back to mock endpoint
-    console.warn('Security Radar API unavailable, using mock data');
-  } catch (error) {
-    console.warn('Security Radar API error, using mock data:', error);
-  }
-
-  // Use mock endpoint as fallback
-  const mockResponse = await fetch(API_ENDPOINTS.MOCK_ASSESS, {
+  // Try the real security-radar-api
+  const response = await fetch(API_ENDPOINTS.SECURITY_RADAR_ASSESS, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -138,11 +118,13 @@ export async function assessProduct(request: AssessmentRequest): Promise<Assessm
     body: JSON.stringify(request),
   });
 
-  if (!mockResponse.ok) {
-    throw new Error(`Assessment failed: ${mockResponse.statusText}`);
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    const errorMessage = errorData.detail || `API error: ${response.statusText}`;
+    throw new Error(errorMessage);
   }
 
-  return await mockResponse.json();
+  return await response.json();
 }
 
 /**

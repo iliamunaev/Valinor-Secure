@@ -80,8 +80,8 @@ export default function Index() {
         {/* Global Header */}
         <Header />
 
-        {/* Main Layout */}
-        <div className="flex h-[calc(100vh-4rem)]">
+        {/* Main Layout - use fixed height calculation */}
+        <div className="flex fixed top-16 left-0 right-0 bottom-0">
           {/* Sidebar */}
           <Sidebar
             isCollapsed={isSidebarCollapsed}

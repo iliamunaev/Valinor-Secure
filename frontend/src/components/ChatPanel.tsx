@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
-import { API_ENDPOINTS } from '../config/api';
-import { parseAssessmentRequest, assessProduct, formatAssessmentResponse } from '../utils/assessmentHelper';
+import React, { useState, useEffect } from 'react';
+import { parseAssessmentRequest, assessProduct } from '../utils/assessmentHelper';
 import { transformAssessmentResponse } from '../utils/assessmentTransformer';
+import { API_ENDPOINTS } from '../config/api';
 
 interface SecurityData {
   meta: any;
@@ -26,12 +26,81 @@ interface AssessmentHistoryItem {
   productName: string;
   timestamp: string;
   status: 'loading' | 'success' | 'error';
+  trustScore?: number;
+  riskLevel?: 'Low' | 'Medium' | 'High';
+  assessmentData?: SecurityData;
 }
+
+// Available LLM models
+type ModelConfig = {
+  id: string;
+  name: string;
+  provider: string;
+};
+
+const MODELS: ModelConfig[] = [
+  { id: 'claude-3-opus-20240229', name: 'Claude 3 Opus', provider: 'Anthropic' },
+  { id: 'gpt-4', name: 'GPT-4', provider: 'OpenAI' },
+  { id: 'gpt-3.5-turbo', name: 'GPT-3.5 Turbo', provider: 'OpenAI' },
+];
 
 const ChatPanel: React.FC<ChatPanelProps> = ({ isSidebarCollapsed, onAssessmentComplete }) => {
   const [assessmentHistory, setAssessmentHistory] = useState<AssessmentHistoryItem[]>([]);
   const [inputValue, setInputValue] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [isLoadingHistory, setIsLoadingHistory] = useState(true);
+  const [selectedModel, setSelectedModel] = useState(MODELS[1]); // Default to GPT-4
+  const [showModelDropdown, setShowModelDropdown] = useState(false);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as HTMLElement;
+      if (showModelDropdown && !target.closest('.model-dropdown')) {
+        setShowModelDropdown(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showModelDropdown]);
+
+  // Load history on mount
+  useEffect(() => {
+    const loadHistory = async () => {
+      try {
+        const response = await fetch(API_ENDPOINTS.HISTORY_GET);
+        if (response.ok) {
+          const data = await response.json();
+          if (data.status === 'success' && data.history) {
+            // Convert backend format to frontend format
+            const history: AssessmentHistoryItem[] = data.history.map((item: any) => ({
+              id: item.id,
+              productName: item.productName,
+              timestamp: new Date(item.timestamp).toLocaleTimeString([], {
+                hour: '2-digit',
+                minute: '2-digit'
+              }),
+              status: 'success' as const,
+              trustScore: item.trustScore,
+              riskLevel: item.riskLevel,
+              assessmentData: item.assessmentData
+            }));
+            setAssessmentHistory(history);
+          }
+        }
+      } catch (error) {
+        console.error('Error loading history:', error);
+      } finally {
+        setIsLoadingHistory(false);
+      }
+    };
+
+    loadHistory();
+  }, []);
 
   const handleSendMessage = async () => {
     if (inputValue.trim() && !isLoading) {
@@ -45,6 +114,9 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ isSidebarCollapsed, onAssessmentC
         // Not an assessment request - ignore or show error
         return;
       }
+
+      // Override model with user's selection
+      assessmentRequest.model = selectedModel.id;
 
       // Add to history as loading
       const historyItem: AssessmentHistoryItem = {
@@ -61,19 +133,47 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ isSidebarCollapsed, onAssessmentC
         // Call security-radar-api for assessment
         const assessment = await assessProduct(assessmentRequest);
 
-        // Update history item to success
+        // Transform assessment data
+        const transformedData = transformAssessmentResponse(assessment, assessmentRequest.model || 'mock');
+
+        // Update history item to success with risk level and assessment data
         setAssessmentHistory(prev =>
           prev.map(item =>
             item.id === historyItem.id
-              ? { ...item, status: 'success' as const }
+              ? {
+                  ...item,
+                  status: 'success' as const,
+                  trustScore: transformedData.summary.trust_score,
+                  riskLevel: transformedData.summary.risk_level as 'Low' | 'Medium' | 'High',
+                  assessmentData: transformedData
+                }
               : item
           )
         );
 
-        // Transform and pass assessment data to parent for display in MainContent
+        // Set as selected and pass assessment data to parent for display in MainContent
+        setSelectedId(historyItem.id);
         if (onAssessmentComplete) {
-          const transformedData = transformAssessmentResponse(assessment, assessmentRequest.model || 'mock');
           onAssessmentComplete(transformedData);
+        }
+
+        // Save to persistent history
+        try {
+          await fetch(API_ENDPOINTS.HISTORY_SAVE, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              id: historyItem.id,
+              productName: assessmentRequest.product_name,
+              trustScore: transformedData.summary.trust_score,
+              riskLevel: transformedData.summary.risk_level,
+              assessmentData: transformedData
+            })
+          });
+        } catch (error) {
+          console.error('Error saving to history:', error);
         }
       } catch (error) {
         console.error('Error processing assessment:', error);
@@ -99,6 +199,39 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ isSidebarCollapsed, onAssessmentC
     }
   };
 
+  const getRiskColor = (riskLevel?: string) => {
+    switch (riskLevel?.toLowerCase()) {
+      case 'low':
+        return 'border-green-300 bg-green-50 dark:border-green-700 dark:bg-green-900/30';
+      case 'medium':
+        return 'border-yellow-300 bg-yellow-50 dark:border-yellow-700 dark:bg-yellow-900/30';
+      case 'high':
+        return 'border-red-300 bg-red-50 dark:border-red-700 dark:bg-red-900/30';
+      default:
+        return 'border-gray-300 bg-gray-50 dark:border-gray-700 dark:bg-gray-900/30';
+    }
+  };
+
+  const getRiskBadgeColor = (riskLevel?: string) => {
+    switch (riskLevel?.toLowerCase()) {
+      case 'low':
+        return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200';
+      case 'medium':
+        return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200';
+      case 'high':
+        return 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200';
+      default:
+        return 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200';
+    }
+  };
+
+  const handleHistoryItemClick = (item: AssessmentHistoryItem) => {
+    if (item.status === 'success' && item.assessmentData && onAssessmentComplete) {
+      setSelectedId(item.id);
+      onAssessmentComplete(item.assessmentData);
+    }
+  };
+
   return (
     <div className="flex flex-col h-full bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 w-96 transition-colors duration-200">
       {/* Header */}
@@ -109,22 +242,34 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ isSidebarCollapsed, onAssessmentC
 
       {/* Assessment History List */}
       <div className="flex-1 overflow-y-auto p-4 space-y-2">
-        {assessmentHistory.length === 0 && !isLoading && (
+        {isLoadingHistory && (
+          <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+            <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
+            <p className="text-sm">Loading history...</p>
+          </div>
+        )}
+
+        {!isLoadingHistory && assessmentHistory.length === 0 && !isLoading && (
           <div className="text-center py-8 text-gray-500 dark:text-gray-400">
             <p className="text-sm">No assessments yet</p>
             <p className="text-xs mt-2">Type "Check [Product]" to start</p>
           </div>
         )}
 
-        {assessmentHistory.map((item) => (
+        {!isLoadingHistory && assessmentHistory.map((item) => (
           <div
             key={item.id}
+            onClick={() => handleHistoryItemClick(item)}
             className={`p-3 rounded-lg border transition-all duration-200 ${
-              item.status === 'success'
-                ? 'border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-900/20'
+              item.status === 'success' ? 'cursor-pointer hover:shadow-md' : ''
+            } ${
+              selectedId === item.id ? 'ring-2 ring-blue-500 ring-offset-2' : ''
+            } ${
+              item.status === 'loading'
+                ? 'border-blue-300 bg-blue-50 dark:border-blue-700 dark:bg-blue-900/30'
                 : item.status === 'error'
-                ? 'border-red-200 bg-red-50 dark:border-red-800 dark:bg-red-900/20'
-                : 'border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-900/20'
+                ? 'border-red-300 bg-red-50 dark:border-red-700 dark:bg-red-900/30'
+                : getRiskColor(item.riskLevel)
             }`}
           >
             <div className="flex items-start justify-between">
@@ -132,11 +277,6 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ isSidebarCollapsed, onAssessmentC
                 <div className="flex items-center space-x-2">
                   {item.status === 'loading' && (
                     <div className="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
-                  )}
-                  {item.status === 'success' && (
-                    <svg className="w-4 h-4 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                    </svg>
                   )}
                   {item.status === 'error' && (
                     <svg className="w-4 h-4 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -147,7 +287,19 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ isSidebarCollapsed, onAssessmentC
                     Check {item.productName}
                   </p>
                 </div>
-                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">{item.timestamp}</p>
+                <div className="flex items-center justify-between mt-2">
+                  <p className="text-xs text-gray-500 dark:text-gray-400">{item.timestamp}</p>
+                  {item.status === 'success' && item.trustScore !== undefined && (
+                    <div className="flex items-center space-x-2">
+                      <span className={`text-xs font-semibold px-2 py-0.5 rounded ${getRiskBadgeColor(item.riskLevel)}`}>
+                        {item.riskLevel}
+                      </span>
+                      <span className="text-xs font-medium text-gray-700 dark:text-gray-300">
+                        {item.trustScore}/100
+                      </span>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
           </div>
@@ -185,16 +337,46 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ isSidebarCollapsed, onAssessmentC
               </svg>
             </button>
           </div>
-          <div className="flex items-center space-x-2 text-xs text-gray-500 dark:text-gray-400">
-            <span>Claude Sonnet 4</span>
-            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-            </svg>
-            <button className="p-1 hover:text-gray-700 dark:hover:text-gray-200 transition-colors">
-              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16l3-3m0 0l3 3m-3-3v6m0-6V4" />
+
+          {/* Model Selector Dropdown */}
+          <div className="relative model-dropdown">
+            <button
+              onClick={() => setShowModelDropdown(!showModelDropdown)}
+              className="flex items-center space-x-2 text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors px-2 py-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700"
+            >
+              <span>{selectedModel.name}</span>
+              <svg
+                className={`w-3 h-3 transition-transform ${showModelDropdown ? 'rotate-180' : ''}`}
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
               </svg>
             </button>
+
+            {/* Dropdown Menu */}
+            {showModelDropdown && (
+              <div className="absolute bottom-full right-0 mb-2 w-48 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg overflow-hidden z-50">
+                {MODELS.map((model) => (
+                  <button
+                    key={model.id}
+                    onClick={() => {
+                      setSelectedModel(model);
+                      setShowModelDropdown(false);
+                    }}
+                    className={`w-full text-left px-4 py-2 text-xs hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors ${
+                      selectedModel.id === model.id
+                        ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400'
+                        : 'text-gray-700 dark:text-gray-300'
+                    }`}
+                  >
+                    <div className="font-medium">{model.name}</div>
+                    <div className="text-gray-500 dark:text-gray-400">{model.provider}</div>
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       </div>

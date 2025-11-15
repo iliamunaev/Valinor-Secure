@@ -11,6 +11,8 @@ export const API_ENDPOINTS = {
   SECURITY_RADAR_ASSESS: `${SECURITY_RADAR_API_URL}/assess`,
   SECURITY_RADAR_HEALTH: `${SECURITY_RADAR_API_URL}/health`,
   MOCK_ASSESS: `${API_BASE_URL}/assess/mock`,
+  HISTORY_SAVE: `${API_BASE_URL}/history/save`,
+  HISTORY_GET: `${API_BASE_URL}/history`,
 } as const;
 
 export default API_BASE_URL;
