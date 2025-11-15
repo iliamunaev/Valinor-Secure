@@ -5,9 +5,11 @@ import { Button } from '../ui/button';
 import { Textarea } from '../ui/textarea';
 import { Send } from 'lucide-react';
 
+
 interface ChatPanelProps {
   messages: Message[];
-  onSendMessage: (content: string) => void;
+  onSendMessage: (content: string, model: string) => void;
+
 }
 
 const AI_AGENTS = [
@@ -16,16 +18,22 @@ const AI_AGENTS = [
   { id: 'deepseek', name: 'DeepSeek' },
 ];
 
+const MODEL_MAP: Record<string, string> = {
+  gpt: "gpt-4.1-mini",
+  claude: "claude-3-opus",
+  deepseek: "deepseek-v3",
+};
+
 export function ChatPanel({ messages, onSendMessage }: ChatPanelProps) {
   const [selectedAgent, setSelectedAgent] = useState('gpt');
   const [inputValue, setInputValue] = useState('');
 
   const handleSend = () => {
     if (inputValue.trim()) {
-      onSendMessage(inputValue);
+      onSendMessage(inputValue, MODEL_MAP[selectedAgent]);
       setInputValue('');
     }
-  };
+  };  
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
@@ -69,7 +77,7 @@ export function ChatPanel({ messages, onSendMessage }: ChatPanelProps) {
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="Ask about security threats, vulnerabilities, or best practices..."
+            placeholder="Enter a URL to scan..."
             className="min-h-[80px] bg-transparent border-0 text-gray-100 placeholder:text-gray-500 resize-none focus-visible:ring-0"
           />
           <div className="flex justify-between items-center px-3 pb-3">

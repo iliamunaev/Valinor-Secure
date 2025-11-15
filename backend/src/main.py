@@ -3,6 +3,22 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 import os
+from typing import List
+
+class MetaModel(BaseModel):
+    generated_at: str
+    user_id: str
+    user_name: str
+    role: str
+    input: str
+
+class ModelItem(BaseModel):
+    llm_model: str
+
+class InputPayload(BaseModel):
+    meta: MetaModel
+    mode: str
+    models: List[ModelItem]
 
 ASSESS_EXAMPLE = {
   "meta": {
@@ -108,22 +124,7 @@ ASSESS_EXAMPLE = {
     }
   ]
 }
-
-INPUT_EXAMPLE = {
-  "meta": {
-    "generated_at": "2025-11-15T10:05:23Z",
-    "user_id": "5353787fj7ssdfd",
-    "user_name": "default_name",
-    "role": "CISO",
-    "input": "https://filezilla-project.org",
-  },
-  "mode": "single",
-  "models": [
-    {
-      "llm_model": "gpt-4.1-mini"
-    }
-  ]
-}
+#need to send it to user
 
 app = FastAPI()
 
@@ -136,9 +137,18 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-@app.get("/input")
-async def read_input():
-    return JSONResponse(content=INPUT_EXAMPLE)
+@app.post("/input")
+async def receive_input(payload: InputPayload):
+    """
+    Receives the real INPUT_EXAMPLE-like JSON from frontend.
+    """
+    print("📥 Received /input payload:", payload.dict())
+
+    return JSONResponse(content={
+        "status": "ok",
+        "received": payload.dict()
+    })
+
 
 @app.post("/assess")
 async def assess():
