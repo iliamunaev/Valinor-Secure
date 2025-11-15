@@ -2,23 +2,15 @@ from fastapi import FastAPI, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
+from typing import Optional, Dict, Any
 import os
-from typing import List
+import sys
+from pathlib import Path
 
-class MetaModel(BaseModel):
-    generated_at: str
-    user_id: str
-    user_name: str
-    role: str
-    input: str
+# Add src directory to path
+sys.path.insert(0, str(Path(__file__).parent))
 
-class ModelItem(BaseModel):
-    llm_model: str
-
-class InputPayload(BaseModel):
-    meta: MetaModel
-    mode: str
-    models: List[ModelItem]
+from history_service import HistoryService
 
 ASSESS_EXAMPLE = {
   "vendor": {
@@ -129,6 +121,9 @@ INPUT_EXAMPLE = {
 
 app = FastAPI()
 
+# Initialize history service
+history_service = HistoryService()
+
 # Allow requests from frontend dev server
 origins = ["http://localhost:5173"]
 app.add_middleware(
@@ -138,18 +133,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-@app.post("/input")
-async def receive_input(payload: InputPayload):
-    """
-    Receives the real INPUT_EXAMPLE-like JSON from frontend.
-    """
-    print("📥 Received /input payload:", payload.dict())
-
-    return JSONResponse(content={
-        "status": "ok",
-        "received": payload.dict()
-    })
-
+@app.get("/input")
+async def read_input():
+    return JSONResponse(content=INPUT_EXAMPLE)
 
 @app.post("/assess")
 async def assess():
@@ -197,13 +183,231 @@ async def upload_csv(file: UploadFile = File(...)):
 class ChatInput(BaseModel):
     message: str
 
+class ChatResponse(BaseModel):
+    message: str
+    status: str
+    timestamp: str
+
+def generate_chat_response(user_message: str) -> str:
+    """
+    Generate a contextual response based on the user's message.
+    This is a placeholder that can be replaced with actual LLM integration.
+    """
+    message_lower = user_message.lower()
+
+    # Simple keyword-based responses
+    if any(word in message_lower for word in ["hello", "hi", "hey", "greetings"]):
+        return "Hello! I'm your security assessment assistant. How can I help you today?"
+
+    elif any(word in message_lower for word in ["help", "what can you do", "capabilities"]):
+        return """I can help you with security assessments! Here's what I can do:
+
+• Analyze vendor security profiles
+• Assess CVE trends and vulnerabilities
+• Check compliance certifications
+• Evaluate trust scores
+• Provide security recommendations
+
+Try asking me to assess a company or upload a CSV file with vendor information."""
+
+    elif any(word in message_lower for word in ["assess", "analyze", "check", "evaluate"]):
+        return "I can help you assess a vendor's security profile. Please provide a company name or URL, or you can upload a CSV file with vendor information to assess multiple vendors at once."
+
+    elif any(word in message_lower for word in ["cloudflare", "vendor", "company"]):
+        return "To assess a vendor like Cloudflare, I'll need their company name and website URL. I can provide information about their security posture, CVE trends, compliance certifications, and trust score."
+
+    elif any(word in message_lower for word in ["csv", "upload", "file", "bulk"]):
+        return "You can upload a CSV file with vendor information for bulk assessment. The CSV should contain columns like company name, website URL, and any other relevant vendor details."
+
+    elif any(word in message_lower for word in ["thank", "thanks"]):
+        return "You're welcome! Let me know if you need anything else."
+
+    else:
+        return f"""I received your message: "{user_message}"
+
+I'm your security assessment assistant. I can help you analyze vendor security profiles, check CVE trends, and evaluate trust scores.
+
+Would you like me to assess a specific vendor, or would you like to know more about my capabilities?"""
+
 @app.post("/input/chat")
 async def get_chat_string(input_data: ChatInput):
     """
-    Endpoint to receive a string message from chat.
+    Endpoint to receive a string message from chat and return a contextual response.
     """
+    from datetime import datetime
+
+    # Generate a response based on the user's message
+    response_message = generate_chat_response(input_data.message)
+
     return JSONResponse(content={
-        "message": "Chat string received successfully",
-        "chat_message": input_data.message,
-        "status": "success"
+        "message": response_message,
+        "status": "success",
+        "timestamp": datetime.now().isoformat()
     })
+
+# Mock assessment endpoint for demo purposes
+class MockAssessRequest(BaseModel):
+    product_name: str
+    company_name: Optional[str] = None
+    model: Optional[str] = None
+
+@app.post("/assess/mock")
+async def mock_assess(request: MockAssessRequest):
+    """
+    Mock assessment endpoint that returns demo data.
+    Use this when LLM APIs are not available.
+    """
+    from datetime import datetime
+
+    product = request.product_name
+
+    # Generate mock data based on product name
+    mock_data = {
+        "product_name": product,
+        "vendor": {
+            "name": f"{product} Inc.",
+            "website": f"https://www.{product.lower().replace(' ', '')}.com",
+            "country": "United States",
+            "founded": "2010",
+            "reputation_summary": f"{product} is a well-known enterprise software provider with a solid market presence."
+        },
+        "category": "Communication",
+        "description": f"{product} is a cloud-based collaboration platform.",
+        "usage_description": f"{product} is used for team communication, file sharing, and workflow integration.",
+        "cve_trends": {
+            "total_cves": 8,
+            "critical_count": 1,
+            "high_count": 2,
+            "medium_count": 3,
+            "low_count": 2,
+            "trend_summary": f"{product} has a moderate CVE history with responsive patching."
+        },
+        "incidents": [],
+        "compliance": {
+            "soc2_compliant": True,
+            "iso_certified": True,
+            "gdpr_compliant": True,
+            "encryption_at_rest": True,
+            "encryption_in_transit": True,
+            "notes": f"{product} maintains strong compliance certifications and follows industry security standards."
+        },
+        "deployment_model": "Cloud",
+        "admin_controls": "Comprehensive admin dashboard with user management, security policies, and audit logs.",
+        "trust_score": {
+            "score": 78,
+            "confidence": "Medium",
+            "rationale": f"{product} demonstrates good security practices with regular updates and compliance certifications. Some past security incidents have been addressed promptly.",
+            "risk_factors": ["Third-party integrations", "Cloud-based data storage"],
+            "positive_factors": ["SOC2 certified", "Regular security updates", "Strong encryption"]
+        },
+        "alternatives": [
+            {
+                "product_name": "Microsoft Teams",
+                "vendor": "Microsoft",
+                "rationale": "Enterprise-grade alternative with strong Microsoft integration",
+                "trust_score": 82
+            }
+        ],
+        "citations": [
+            {
+                "url": f"https://www.{product.lower()}.com/security",
+                "source_type": "Vendor Stated",
+                "title": f"{product} Security Documentation",
+                "date": "2024-01-15",
+                "description": "Official security documentation"
+            }
+        ],
+        "assessment_timestamp": datetime.utcnow().isoformat(),
+        "cache_key": "mock_assessment"
+    }
+
+    return JSONResponse(content=mock_data)
+
+# Assessment history endpoints
+class SaveHistoryRequest(BaseModel):
+    id: str
+    productName: str
+    trustScore: int
+    riskLevel: str
+    assessmentData: Dict[str, Any]
+
+@app.post("/history/save")
+async def save_assessment_history(request: SaveHistoryRequest):
+    """
+    Save an assessment to history.
+    """
+    success = history_service.save_assessment(
+        assessment_id=request.id,
+        product_name=request.productName,
+        trust_score=request.trustScore,
+        risk_level=request.riskLevel,
+        assessment_data=request.assessmentData
+    )
+
+    if success:
+        return JSONResponse(content={
+            "status": "success",
+            "message": "Assessment saved to history"
+        })
+    else:
+        return JSONResponse(
+            status_code=500,
+            content={
+                "status": "error",
+                "message": "Failed to save assessment"
+            }
+        )
+
+@app.get("/history")
+async def get_assessment_history(limit: int = 50, offset: int = 0):
+    """
+    Get assessment history with pagination.
+    """
+    history = history_service.get_history(limit=limit, offset=offset)
+    return JSONResponse(content={
+        "status": "success",
+        "history": history,
+        "count": len(history)
+    })
+
+@app.get("/history/{assessment_id}")
+async def get_assessment_by_id(assessment_id: str):
+    """
+    Get a specific assessment by ID.
+    """
+    assessment = history_service.get_assessment(assessment_id)
+
+    if assessment:
+        return JSONResponse(content={
+            "status": "success",
+            "assessment": assessment
+        })
+    else:
+        return JSONResponse(
+            status_code=404,
+            content={
+                "status": "error",
+                "message": "Assessment not found"
+            }
+        )
+
+@app.delete("/history/{assessment_id}")
+async def delete_assessment_from_history(assessment_id: str):
+    """
+    Delete an assessment from history.
+    """
+    success = history_service.delete_assessment(assessment_id)
+
+    if success:
+        return JSONResponse(content={
+            "status": "success",
+            "message": "Assessment deleted from history"
+        })
+    else:
+        return JSONResponse(
+            status_code=500,
+            content={
+                "status": "error",
+                "message": "Failed to delete assessment"
+            }
+        )

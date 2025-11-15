@@ -1,152 +1,28 @@
-import { useState, useEffect } from 'react';
-import { Sidebar } from './components/Sidebar';
-import { InspectionPanel} from './components/InspectionPanel';
-import { assess } from "./api/send/sendScan";
-import { getScanHistory } from './api/get/getScanHistory';
-import MainContent from './components/MainContent';
-// import { InspectionPanelDELETE} from './components/InspectionPanelDELETE';
-// import { API_URL } from "./config";
-// import { getUserId } from "./api/send/user";
+import { Toaster } from '@/components/ui/sonner';
+import { TooltipProvider } from '@/components/ui/tooltip';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import Index from './pages/Index';
+import WebSites from './pages/WebSites';
+import Networks from './pages/Networks';
+import NotFound from './pages/NotFound';
 
-export interface Message {
-  id: string;
-  role: 'user' | 'assistant';
-  content: string;
-  timestamp: Date;
-}
+const queryClient = new QueryClient();
 
-export interface ScanHistory {
-  id: string;
-  url: string;
-  securityLevel: 'safe' | 'warning' | 'critical';
-  timestamp: Date;
-  score: number;
-}
+const App = () => (
+  <QueryClientProvider client={queryClient}>
+    <TooltipProvider>
+      <Toaster />
+      <BrowserRouter>
+        <Routes>
+          <Route path="/" element={<Index />} />
+          <Route path="/websites" element={<WebSites />} />
+          <Route path="/networks" element={<Networks />} />
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </BrowserRouter>
+    </TooltipProvider>
+  </QueryClientProvider>
+);
 
-export interface Post {
-  id: string;
-  content: string;
-  author: {
-    name: string;
-    username: string;
-    avatar: string;
-  };
-  timestamp: Date;
-  likes: number;
-  reposts: number;
-  replies: number;
-}
-
-export default function App() {
-  const [activeNav, setActiveNav] = useState<'apps' | 'websites'>('websites');
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      id: '1',
-      role: 'assistant',
-      content: 'Hello! I\'m your cybersecurity AI assistant. How can I help you secure your digital assets today?',
-      timestamp: new Date(Date.now() - 1000 * 60 * 5),
-    },
-  ]);
-  const [scanHistory, setScanHistory] = useState<ScanHistory[]>([]);
-
-  // Load scan history from backend on component mount
-  useEffect(() => {
-    const loadScanHistory = async () => {
-      try {
-        console.log("Loading scan history from backend...");
-        const assessmentData = await getScanHistory();
-        console.log("Assessment data received:", assessmentData);
-        
-        // Convert ASSESS_EXAMPLE data to scan history format
-        if (assessmentData && assessmentData.meta && assessmentData.summary) {
-          const riskLevelMap: { [key: string]: 'safe' | 'warning' | 'critical' } = {
-            'Low': 'safe',
-            'Medium': 'warning',
-            'High': 'critical'
-          };
-
-          const scanEntry: ScanHistory = {
-            id: '1',
-            url: assessmentData.meta.input || 'https://app.acmecloud.example',
-            securityLevel: riskLevelMap[assessmentData.summary.risk_level] || 'warning',
-            timestamp: new Date(assessmentData.meta.generated_at || Date.now()),
-            score: assessmentData.summary.trust_score || 68
-          };
-
-          setScanHistory([scanEntry]);
-          console.log("Scan history updated:", [scanEntry]);
-        } else {
-          console.log("No valid assessment data found, using empty scan history");
-          setScanHistory([]);
-        }
-      } catch (error) {
-        console.error("Failed to load scan history:", error);
-        // Set empty array on error instead of hardcoded data
-        setScanHistory([]);
-      }
-    };
-
-    loadScanHistory();
-  }, []); // Empty dependency array - load once on mount
-
-  const handleScan = async (url: string) => {
-    try {
-      console.log("Scanning URL:", url);
-      // You can add your scan logic here
-      // For now, let's add it to scan history as a placeholder
-      const newScan: ScanHistory = {
-        id: Date.now().toString(),
-        url: url,
-        securityLevel: 'safe',
-        timestamp: new Date(),
-        score: 85
-      };
-      
-      setScanHistory(prev => [newScan, ...prev]);
-    } catch (error) {
-      console.error("Scan failed:", error);
-    }
-  };
-
-  const handleSendMessage = async (url: string, model: string) => {
-    setMessages(prev => [...prev, {
-      id: Date.now().toString(),
-      role: "user",
-      content: url,
-      timestamp: new Date(),
-    }]);
-  
-    try {
-      const data = await assess(url, model);
-  
-      setMessages(prev => [...prev, {
-        id: Date.now().toString(),
-        role: "assistant",
-        content: JSON.stringify(data, null, 2),
-        timestamp: new Date(),
-      }]);
-  
-    } catch (err) {
-      console.error("Scan failed", err);
-    }
-  };
-  return (
-    <div className="min-h-screen w-screen bg-gray-950 text-gray-100">
-      <div className="flex justify-center h-screen overflow-hidden">
-        <div className="flex w-full max-w-[1920px] overflow-hidden">
-          <Sidebar activeNav={activeNav} onNavChange={setActiveNav}>
-          </Sidebar>
-          
-          <div className="flex-1 flex overflow-hidden">
-            <InspectionPanel
-              scanHistory={scanHistory}
-              setScanHistory={setScanHistory}
-              onScan={handleScan}
-            />
-            <MainContent />
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
+export default App;
