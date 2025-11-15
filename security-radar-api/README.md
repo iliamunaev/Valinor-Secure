@@ -115,9 +115,146 @@ Assess a software application's security posture.
 
 Retrieve a cached assessment by cache key.
 
+**How to get the cache identifier:**
+
+When you perform an assessment using `POST /assess`, the response includes a `cache_key` field:
+
+```bash
+# Step 1: Perform an assessment
+curl -X POST http://localhost:8088/assess \
+  -H "Content-Type: application/json" \
+  -d '{
+    "product_name": "FileZilla",
+    "company_name": "Tim Kosse"
+  }'
+```
+
+**Response includes cache_key:**
+```json
+{
+  "product_name": "FileZilla",
+  "vendor": {...},
+  "trust_score": {...},
+  ...
+  "cache_key": "44a7c0bc6d776be269e5a830ed40807aadf8a3c5246e3a955a051314238f547f"
+}
+```
+
+**Step 2: Retrieve from cache using the cache_key:**
+
+```bash
+# Using the cache_key from the response
+curl http://localhost:8088/cache/44a7c0bc6d776be269e5a830ed40807aadf8a3c5246e3a955a051314238f547f
+```
+
+**Response:**
+```json
+{
+  "product_name": "FileZilla",
+  "vendor": {
+    "name": "Tim Kosse",
+    "reputation_summary": "..."
+  },
+  "category": "File Sharing",
+  "trust_score": {
+    "score": 65,
+    "confidence": "Medium",
+    "rationale": "..."
+  },
+  "_cache_metadata": {
+    "cached_at": "2024-01-15T10:30:00",
+    "access_count": 2
+  },
+  ...
+}
+```
+
+**Error Response (404):**
+```json
+{
+  "detail": "Assessment not found in cache"
+}
+```
+
+**Python Example:**
+```python
+import requests
+
+# Perform assessment
+response = requests.post("http://localhost:8088/assess", json={
+    "product_name": "FileZilla",
+    "company_name": "Tim Kosse"
+})
+
+assessment = response.json()
+cache_key = assessment["cache_key"]
+
+# Retrieve from cache
+cached_response = requests.get(f"http://localhost:8088/cache/{cache_key}")
+cached_assessment = cached_response.json()
+
+print(f"Trust Score: {cached_assessment['trust_score']['score']}/100")
+print(f"Access Count: {cached_assessment['_cache_metadata']['access_count']}")
+```
+
 ### GET /cache
 
 List all cached assessments with pagination.
+
+**Request:**
+```bash
+# Get first 20 cached assessments (default)
+curl http://localhost:8088/cache
+
+# With pagination parameters
+curl "http://localhost:8088/cache?limit=10&offset=0"
+
+# Get next page
+curl "http://localhost:8088/cache?limit=10&offset=10"
+```
+
+**Response:**
+```json
+{
+  "total": 25,
+  "limit": 10,
+  "offset": 0,
+  "assessments": [
+    {
+      "cache_key": "44a7c0bc6d776be269e5a830ed40807aadf8a3c5246e3a955a051314238f547f",
+      "product_name": "FileZilla",
+      "company_name": "Tim Kosse",
+      "cached_at": "2024-01-15T10:30:00",
+      "last_accessed": "2024-01-15T14:22:00",
+      "access_count": 5
+    },
+    {
+      "cache_key": "8f3e4a1b2c9d5e7f6a0b1c2d3e4f5a6b7c8d9e0f1a2b3c4d5e6f7a8b9c0d1e2f",
+      "product_name": "1Password",
+      "company_name": "1Password",
+      "cached_at": "2024-01-15T09:15:00",
+      "last_accessed": "2024-01-15T09:15:00",
+      "access_count": 1
+    }
+  ]
+}
+```
+
+**Python Example:**
+```python
+import requests
+
+# List all cached assessments
+response = requests.get("http://localhost:8088/cache")
+cache_list = response.json()
+
+print(f"Total cached assessments: {cache_list['total']}")
+
+for item in cache_list['assessments']:
+    print(f"- {item['product_name']} (cached: {item['cached_at']})")
+    print(f"  Cache Key: {item['cache_key']}")
+    print(f"  Access Count: {item['access_count']}")
+```
 
 ### POST /assess/file
 
@@ -165,6 +302,66 @@ Assessments are cached locally in SQLite with:
 
 Cache location: `assessment_cache.db`
 
+## Usage Examples
+
+The `examples/` directory contains practical examples for using the API:
+
+### Cache Retrieval Examples
+
+**Bash Example:**
+```bash
+# Run the shell script
+./examples/cache_example.sh
+```
+
+**Python Example:**
+```bash
+# Run the Python script
+python examples/cache_example.py
+```
+
+Both examples demonstrate:
+1. Performing an assessment
+2. Extracting the `cache_key` from the response
+3. Retrieving the assessment from cache using the cache_key
+4. Listing all cached assessments
+
+**Quick Python snippet:**
+```python
+import requests
+
+# Step 1: Perform assessment
+response = requests.post("http://localhost:8088/assess", json={
+    "product_name": "FileZilla",
+    "company_name": "Tim Kosse"
+})
+assessment = response.json()
+
+# Step 2: Get cache key
+cache_key = assessment["cache_key"]
+print(f"Cache key: {cache_key}")
+
+# Step 3: Retrieve from cache later
+cached = requests.get(f"http://localhost:8088/cache/{cache_key}")
+print(f"Trust Score: {cached.json()['trust_score']['score']}/100")
+```
+
+**Quick curl snippet:**
+```bash
+# Perform assessment and save response
+curl -X POST http://localhost:8088/assess \
+  -H "Content-Type: application/json" \
+  -d '{"product_name": "FileZilla"}' > assessment.json
+
+# Extract cache_key
+CACHE_KEY=$(cat assessment.json | python3 -c "import sys, json; print(json.load(sys.stdin)['cache_key'])")
+
+# Retrieve from cache
+curl http://localhost:8088/cache/$CACHE_KEY
+```
+
+See [examples/README.md](examples/README.md) for more details and additional examples.
+
 ## Development
 
 ### Project Structure
@@ -190,12 +387,21 @@ Cache location: `assessment_cache.db`
 │   ├── test_cache_service.py  # Unit tests for cache service
 │   ├── test_assessor.py # Unit tests for assessor logic
 │   ├── test_api.py      # API endpoint tests
-│   └── test_integration.py # Integration tests
+│   ├── test_integration.py # Integration tests
+│   └── README.md        # Test documentation
+├── examples/            # Usage examples
+│   ├── cache_example.sh # Bash cache example
+│   ├── cache_example.py # Python cache example
+│   └── README.md        # Examples documentation
 ├── data/
 │   └── example.csv      # Sample data
+├── Dockerfile           # Docker production build
+├── docker-compose.yml   # Docker Compose configuration
+├── Makefile             # Convenient Docker commands
 ├── pytest.ini           # Pytest configuration
 ├── .env.example         # Environment variables template
 ├── .gitignore           # Git ignore file
+├── DOCKER.md            # Docker deployment guide
 └── README.md
 ```
 
