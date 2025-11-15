@@ -105,7 +105,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onToggle, onNavigate, ac
       {/* Navigation Items */}
       <div className="flex-1 px-4 pt-6 overflow-hidden">
         {!isCollapsed && (
-          <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-4">Navigation</h3>
+          <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-4">Security Tools</h3>
         )}
         
         <div className="space-y-2">

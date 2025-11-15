@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import BasePageLayout from '../layouts/BasePageLayout';
-import MainContent from '../components/MainContent';
+import WebSitesReport from '../components/WebSitesReport';
 import ChatPanel from '../components/ChatPanel';
 
 interface SecurityData {
@@ -82,7 +82,7 @@ export default function WebSites() {
       />
 
       {/* Main Content */}
-      <MainContent assessmentData={assessmentData} />
+      <WebSitesReport assessmentData={assessmentData} />
     </BasePageLayout>
   );
 }

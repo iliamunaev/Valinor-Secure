@@ -17,7 +17,6 @@ interface SecurityData {
 }
 
 interface ChatPanelProps {
-  isSidebarCollapsed?: boolean;
   onAssessmentComplete?: (data: SecurityData) => void;
   isTeamSelected?: boolean;
   onTeamSelectedChange?: (isTeamSelected: boolean) => void;
@@ -47,7 +46,6 @@ const MODELS: ModelConfig[] = [
 ];
 
 const ChatPanel: React.FC<ChatPanelProps> = ({
-  isSidebarCollapsed,
   onAssessmentComplete,
   isTeamSelected: isTeamSelectedProp = true,
   onTeamSelectedChange
