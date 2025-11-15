@@ -22,7 +22,7 @@
   --ring: 222.2 84% 4.9%;
   --radius: 0.5rem;
 
-  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
+  
   line-height: 1.5;
   font-weight: 400;
 
@@ -59,7 +59,7 @@
 }
 
 :root {
-  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
+   font-family: "Saira", sans-serif;
   line-height: 1.5;
   font-weight: 400;
 

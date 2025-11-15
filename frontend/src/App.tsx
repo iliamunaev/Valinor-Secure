@@ -1,12 +1,12 @@
 import { useState, useEffect } from 'react';
 import { Sidebar } from './components/Sidebar';
-import { ChatPanel } from './components/ChatPanel';
-// import { InspectionPanelDELETE} from './components/InspectionPanelDELETE';
 import { InspectionPanel} from './components/InspectionPanel';
 import { assess } from "./api/send/sendScan";
 import { getScanHistory } from './api/get/getScanHistory';
-import { API_URL } from "./config";
-import { getUserId } from "./api/send/user";
+import MainContent from './components/MainContent';
+// import { InspectionPanelDELETE} from './components/InspectionPanelDELETE';
+// import { API_URL } from "./config";
+// import { getUserId } from "./api/send/user";
 
 export interface Message {
   id: string;
@@ -130,68 +130,18 @@ export default function App() {
       console.error("Scan failed", err);
     }
   };
-  
-  
-  // const handleSendMessage = (content: string) => {
-  //   const userMessage: Message = {
-  //     id: Date.now().toString(),
-  //     role: 'user',
-  //     content,
-  //     timestamp: new Date(),
-  //   };
-    
-  //   setMessages([...messages, userMessage]);
-
-  //   // Simulate AI response
-  //   setTimeout(() => {
-  //     const assistantMessage: Message = {
-  //       id: (Date.now() + 1).toString(),
-  //       role: 'assistant',
-  //       content: 'I\'ve analyzed your query. Based on current threat intelligence, I recommend implementing multi-factor authentication and regular security audits for your infrastructure.',
-  //       timestamp: new Date(),
-  //     };
-  //     setMessages((prev) => [...prev, assistantMessage]);
-  //   }, 1000);
-  // };
-
-  // const handleScan = (url: string) => {
-  //   const securityLevels: Array<'safe' | 'warning' | 'critical'> = ['safe', 'warning', 'critical'];
-  //   const randomLevel = securityLevels[Math.floor(Math.random() * securityLevels.length)];
-  //   const score = randomLevel === 'safe' ? 85 + Math.floor(Math.random() * 15) : 
-  //                 randomLevel === 'warning' ? 50 + Math.floor(Math.random() * 35) :
-  //                 Math.floor(Math.random() * 50);
-    
-  //   const newScan: ScanHistory = {
-  //     id: Date.now().toString(),
-  //     url,
-  //     securityLevel: randomLevel,
-  //     timestamp: new Date(),
-  //     score,
-  //   };
-    
-  //   setScanHistory([newScan, ...scanHistory]);
-  // };
-
   return (
-    <div className="min-h-screen bg-gray-950 text-gray-100">
+    <div className="min-h-screen w-screen bg-gray-950 text-gray-100">
       <div className="flex h-screen overflow-hidden">
         <Sidebar activeNav={activeNav} onNavChange={setActiveNav} />
         
         <div className="flex-1 flex overflow-hidden">
-        {/* <ChatPanel messages={messages} onSendMessage={handleSendMessage} /> */}
-          {/* <InspectionPanel scanHistory={scanHistory}/> */}
-          <div className="flex-1 flex overflow-hidden">
-          {/* <InspectionPanelDELETE 
-            scanHistory={scanHistory}
-            setScanHistory={setScanHistory}
-           /> */}
           <InspectionPanel
             scanHistory={scanHistory}
             setScanHistory={setScanHistory}
             onScan={handleScan}
-           />
-          {/* <ChatPanel messages={messages} onSendMessage={handleSendMessage} /> */}
-</div>
+          />
+          <MainContent />
         </div>
       </div>
     </div>
