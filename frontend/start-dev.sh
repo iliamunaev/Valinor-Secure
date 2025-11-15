@@ -1,0 +1,12 @@
+#!/bin/sh
+set -e
+
+if [ ! -d node_modules ] || [ -z "$(ls -A node_modules 2>/dev/null)" ]; then
+  if [ -f package-lock.json ]; then
+    npm ci --no-audit --no-fund
+  else
+    npm install --no-audit --no-fund
+  fi
+fi
+
+exec npm run dev -- --host 0.0.0.0 --port 5173 --strictPort

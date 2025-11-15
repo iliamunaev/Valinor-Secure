@@ -2,6 +2,9 @@ import { useState } from 'react';
 import { Sidebar } from './components/Sidebar';
 import { ChatPanel } from './components/ChatPanel';
 import { InspectionPanel } from './components/InspectionPanel';
+import { assess } from "./api/send/sendScan";
+import { API_URL } from "./config";
+import { getUserId } from "./api/send/user";
 
 export interface Message {
   id: string;
@@ -73,45 +76,69 @@ export default function App() {
     },
   ]);
 
-  const handleSendMessage = (content: string) => {
-    const userMessage: Message = {
+  const handleSendMessage = async (url: string, model: string) => {
+    setMessages(prev => [...prev, {
       id: Date.now().toString(),
-      role: 'user',
-      content,
+      role: "user",
+      content: url,
       timestamp: new Date(),
-    };
-    
-    setMessages([...messages, userMessage]);
-
-    // Simulate AI response
-    setTimeout(() => {
-      const assistantMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        role: 'assistant',
-        content: 'I\'ve analyzed your query. Based on current threat intelligence, I recommend implementing multi-factor authentication and regular security audits for your infrastructure.',
+    }]);
+  
+    try {
+      const data = await assess(url, model);
+  
+      setMessages(prev => [...prev, {
+        id: Date.now().toString(),
+        role: "assistant",
+        content: JSON.stringify(data, null, 2),
         timestamp: new Date(),
-      };
-      setMessages((prev) => [...prev, assistantMessage]);
-    }, 1000);
+      }]);
+  
+    } catch (err) {
+      console.error("Scan failed", err);
+    }
   };
+  
+  
+  // const handleSendMessage = (content: string) => {
+  //   const userMessage: Message = {
+  //     id: Date.now().toString(),
+  //     role: 'user',
+  //     content,
+  //     timestamp: new Date(),
+  //   };
+    
+  //   setMessages([...messages, userMessage]);
 
-  const handleScan = (url: string) => {
-    const securityLevels: Array<'safe' | 'warning' | 'critical'> = ['safe', 'warning', 'critical'];
-    const randomLevel = securityLevels[Math.floor(Math.random() * securityLevels.length)];
-    const score = randomLevel === 'safe' ? 85 + Math.floor(Math.random() * 15) : 
-                  randomLevel === 'warning' ? 50 + Math.floor(Math.random() * 35) :
-                  Math.floor(Math.random() * 50);
+  //   // Simulate AI response
+  //   setTimeout(() => {
+  //     const assistantMessage: Message = {
+  //       id: (Date.now() + 1).toString(),
+  //       role: 'assistant',
+  //       content: 'I\'ve analyzed your query. Based on current threat intelligence, I recommend implementing multi-factor authentication and regular security audits for your infrastructure.',
+  //       timestamp: new Date(),
+  //     };
+  //     setMessages((prev) => [...prev, assistantMessage]);
+  //   }, 1000);
+  // };
+
+  // const handleScan = (url: string) => {
+  //   const securityLevels: Array<'safe' | 'warning' | 'critical'> = ['safe', 'warning', 'critical'];
+  //   const randomLevel = securityLevels[Math.floor(Math.random() * securityLevels.length)];
+  //   const score = randomLevel === 'safe' ? 85 + Math.floor(Math.random() * 15) : 
+  //                 randomLevel === 'warning' ? 50 + Math.floor(Math.random() * 35) :
+  //                 Math.floor(Math.random() * 50);
     
-    const newScan: ScanHistory = {
-      id: Date.now().toString(),
-      url,
-      securityLevel: randomLevel,
-      timestamp: new Date(),
-      score,
-    };
+  //   const newScan: ScanHistory = {
+  //     id: Date.now().toString(),
+  //     url,
+  //     securityLevel: randomLevel,
+  //     timestamp: new Date(),
+  //     score,
+  //   };
     
-    setScanHistory([newScan, ...scanHistory]);
-  };
+  //   setScanHistory([newScan, ...scanHistory]);
+  // };
 
   return (
     <div className="min-h-screen bg-gray-950 text-gray-100">
@@ -120,7 +147,7 @@ export default function App() {
         
         <div className="flex-1 flex overflow-hidden">
           <ChatPanel messages={messages} onSendMessage={handleSendMessage} />
-          <InspectionPanel scanHistory={scanHistory} onScan={handleScan} />
+          {/* <InspectionPanel scanHistory={scanHistory} onScan={handleScan} /> */}
         </div>
       </div>
     </div>

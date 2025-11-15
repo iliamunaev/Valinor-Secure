@@ -1,7 +1,24 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from pydantic import BaseModel
 import os
+from typing import List
+
+class MetaModel(BaseModel):
+    generated_at: str
+    user_id: str
+    user_name: str
+    role: str
+    input: str
+
+class ModelItem(BaseModel):
+    llm_model: str
+
+class InputPayload(BaseModel):
+    meta: MetaModel
+    mode: str
+    models: List[ModelItem]
 
 ASSESS_EXAMPLE = {
   "meta": {
@@ -107,24 +124,7 @@ ASSESS_EXAMPLE = {
     }
   ]
 }
-
-INPUT_EXAMPLE = {
-  "meta": {
-    "generated_at": "2025-11-15T10:05:23Z",
-    "user_id": "5353787fj7ssdfd",
-    "user_name": "default_name",
-    "role": "refault_role",
-    "input": "https://app.acmecloud.example",
-  },
-  "models": [
-    {
-      "llm_model": "gpt-4.1-mini"
-    },
-    {
-      "llm_model": "gpt-4-turbo"
-    }
-  ]
-}
+#need to send it to user
 
 app = FastAPI()
 
@@ -137,17 +137,72 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# @app.get("/api/hello")
-# def read_root():
-#   return {
-#       "message": "Hello from TEST FastAPI Test! Test!",
-#       "test_backend": os.getenv("TEST_BACKEND", "undefined"),
-#   }
+@app.post("/input")
+async def receive_input(payload: InputPayload):
+    """
+    Receives the real INPUT_EXAMPLE-like JSON from frontend.
+    """
+    print("📥 Received /input payload:", payload.dict())
 
-@app.get("/input")
-async def read_input():
-    return JSONResponse(content=INPUT_EXAMPLE)
+    return JSONResponse(content={
+        "status": "ok",
+        "received": payload.dict()
+    })
+
 
 @app.post("/assess")
 async def assess():
     return JSONResponse(content=ASSESS_EXAMPLE)
+
+# Endpoint 1: Read URL from user as input
+class URLInput(BaseModel):
+    url: str
+
+@app.post("/input/url")
+async def read_url(input_data: URLInput):
+    """
+    Endpoint to receive a URL from the user.
+    """
+    return JSONResponse(content={
+        "message": "URL received successfully",
+        "url": input_data.url,
+        "status": "success"
+    })
+
+# Endpoint 2: Get CSV file from user
+@app.post("/input/csv")
+async def upload_csv(file: UploadFile = File(...)):
+    """
+    Endpoint to receive a CSV file from the user.
+    """
+    if not file.filename.endswith('.csv'):
+        return JSONResponse(
+            status_code=400,
+            content={"error": "File must be a CSV file"}
+        )
+
+    contents = await file.read()
+    file_size = len(contents)
+
+    return JSONResponse(content={
+        "message": "CSV file received successfully",
+        "filename": file.filename,
+        "file_size": file_size,
+        "content_type": file.content_type,
+        "status": "success"
+    })
+
+# Endpoint 3: Get string from chat
+class ChatInput(BaseModel):
+    message: str
+
+@app.post("/input/chat")
+async def get_chat_string(input_data: ChatInput):
+    """
+    Endpoint to receive a string message from chat.
+    """
+    return JSONResponse(content={
+        "message": "Chat string received successfully",
+        "chat_message": input_data.message,
+        "status": "success"
+    })
