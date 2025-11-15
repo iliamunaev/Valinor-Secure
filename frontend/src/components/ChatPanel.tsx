@@ -401,7 +401,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ isSidebarCollapsed, onAssessmentC
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="How's it going? Ask the team to..."
+            placeholder="Check [Company/Product Name]"
             disabled={isLoading}
             className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
             rows={1}

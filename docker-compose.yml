@@ -58,9 +58,15 @@ services:
       - API_PORT=8088
       - DEBUG=False
       - CACHE_DB_PATH=/app/data/assessment_cache.db
+      - REQUEST_LOG_FILE=/app/logs/api_request_log.txt
+      - ENABLE_REQUEST_LOGGING=true
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
     volumes:
       # Persist cache database
       - cache_data:/app/data
+      # Persist logs
+      - ./security-radar-api/logs:/app/logs
       # Optional: mount local .env file
       # - ./.env:/app/.env:ro
     restart: unless-stopped
