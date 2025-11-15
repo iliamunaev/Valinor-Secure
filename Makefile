@@ -7,6 +7,9 @@ all: build run
 build:
 	$(DOCKER_COMPOSE) build --parallel
 
+build-no-cache:
+	$(DOCKER_COMPOSE) build --parallel --no-cache
+
 run:
 	$(DOCKER_COMPOSE) up -d
 
@@ -30,4 +33,13 @@ logs:
 ps:
 	$(DOCKER_COMPOSE) ps
 
-.PHONY: all build run stop restart down clean re logs ps
+redis-cli:
+	$(DOCKER_COMPOSE) exec redis redis-cli
+
+redis-logs:
+	$(DOCKER_COMPOSE) logs -f redis
+
+redis-flush:
+	$(DOCKER_COMPOSE) exec redis redis-cli FLUSHALL
+
+.PHONY: all build build-no-cache run stop restart down clean re logs ps redis-cli redis-logs redis-flush

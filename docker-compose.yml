@@ -10,11 +10,31 @@ services:
     environment:
       PYTHONDONTWRITEBYTECODE: ${PYTHONDONTWRITEBYTECODE}
       PYTHONUNBUFFERED: ${PYTHONUNBUFFERED}
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+    depends_on:
+      - redis
     volumes:
       - ./backend/src:/app/src
       - ./backend/requirements.txt:/app/requirements.txt:ro
     networks:
       - valinor-network
+
+  redis:
+    image: redis:7-alpine
+    container_name: valinor-redis
+    ports:
+      - "6379:6379"
+    restart: unless-stopped
+    volumes:
+      - redis_data:/data
+    networks:
+      - valinor-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
 
   frontend:
     build:
@@ -76,6 +96,8 @@ services:
 volumes:
   frontend_node_modules:
   cache_data:
+    driver: local
+  redis_data:
     driver: local
 
 networks:
