@@ -1,4 +1,26 @@
 services:
+  nginx-proxy:
+    build: ./nginx-proxy
+    container_name: valinor-nginx-proxy
+    ports:
+      - "80:80"
+      - "443:443"
+    depends_on:
+      - backend
+      - frontend
+      - security-radar-api
+    restart: unless-stopped
+    volumes:
+      - ./nginx-proxy/valinor.ink-ssl-bundle:/etc/nginx/certs:ro
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- --no-check-certificate https://127.0.0.1/health >/dev/null 2>&1 || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks:
+      - valinor-network
+
   backend:
     build: ./backend
     container_name: valinor-backend
