@@ -220,7 +220,7 @@ const MainContent: React.FC = () => {
       <div className="flex-1 flex items-center justify-center bg-gray-900">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-cyan-400 mx-auto mb-4"></div>
-          <p className="text-gray-400">Loading security assessment...</p>
+          <p className="text-gray-400">Waiting for request...</p>
         </div>
       </div>
     );
