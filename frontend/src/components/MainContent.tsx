@@ -229,14 +229,10 @@ const MainContent: React.FC = () => {
   return (
     <div className="flex-1 flex flex-col bg-gray-900">
       {/* Header */}
-      <div className="p-6 border-b border-gray-800 bg-gray-900">
-        <div className="flex items-center justify-between">
-          <div>
-            <h2 className="text-gray-2xl font-bold text-gray-100">
-              Security Assessment Report
-            </h2>
-          </div>
-        </div>
+      <div className="p-4 border-b border-gray-800 bg-gray-900 flex items-center justify-center">
+        <h2 className="text-2xl font-bold text-white">
+          Security Assessment Report
+        </h2>
       </div>
 
       {/* Content */}
@@ -305,7 +301,7 @@ const MainContent: React.FC = () => {
 
           {/* Main Tabs */}
           <Tabs defaultValue="overview" className="w-full">
-            <TabsList className="grid w-full grid-cols-5 bg-gray-800 border-gray-700">
+            <TabsList className="grid w-full grid-cols-5 bg-gray-800 border-gray-700 gap-5 mb-5">
               <TabsTrigger value="overview">Overview</TabsTrigger>
               <TabsTrigger value="vulnerabilities">Vulnerabilities</TabsTrigger>
               <TabsTrigger value="compliance">Compliance</TabsTrigger>

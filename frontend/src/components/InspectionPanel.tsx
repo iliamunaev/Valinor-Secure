@@ -7,10 +7,22 @@ import { Search, Link as LinkIcon } from 'lucide-react';
 import { getScanHistory } from "../api/get/getScanHistory";
 
 // AI Agents configuration
-const AI_AGENTS = [
-  { id: 'gpt', name: 'GPT-4' },
-  { id: 'claude', name: 'Claude' },
-  { id: 'deepseek', name: 'DeepSeek' },
+export const AI_AGENTS = [
+  {
+    id: "gpt",
+    // name: "GPT-4",
+    icon: "/assets/chatgpt.png"
+  },
+  {
+    id: "claude",
+    // name: "Claude",
+    icon: "/assets/cloude.png"
+  },
+  {
+    id: "deepseek",
+    // name: "DeepSeek",
+    icon: "/assets/deepseek.png"
+  }
 ];
 
 interface InspectionPanelProps {
@@ -77,25 +89,41 @@ export function InspectionPanel({ scanHistory, setScanHistory, onScan }: Inspect
   return (
     <div className="w-96 bg-gray-900 flex flex-col">
       {/* Header */}
-      <div className="p-4 border-b border-gray-800">
-        <h2 className="text-cyan-400 mb-4">Website Inspector</h2>
-        <div className="p-4 border-b border-gray-800">
-          <div className="bg-gray-800 rounded-lg p-1 inline-flex">
+      <div className="p-4 border-b border-gray-800 flex items-center justify-center">
+        <h2 className="text-2xl font-bold text-white">Website Inspector</h2>
+      </div>
+      
+      {/* AI Agent Selection */}
+      <div className="p-4">
+          <div className="rounded-lg p-1 inline-flex">
             {AI_AGENTS.map((agent) => (
-              <button
-                key={agent.id}
-                onClick={() => setSelectedAgent(agent.id)}
-                className={`px-4 py-2 rounded-md transition-all ${
-                  selectedAgent === agent.id
-                    ? 'bg-cyan-500 text-white'
-                    : 'text-gray-400 hover:text-gray-300'
-                }`}
-              >
-                {agent.name}
-              </button>
+            //   <button
+            //     key={agent.id}
+            //     onClick={() => setSelectedAgent(agent.id)}
+            //     className={`px-4 py-2 rounded-md transition-all ${
+            //       selectedAgent === agent.id
+            //         ? 'bg-cyan-500 text-white'
+            //         : 'text-gray-400 hover:text-gray-300'
+            //     }`}
+            //   >
+            //     {agent.name}
+            //   </button>
+			<button
+			  key={agent.id}
+			  onClick={() => setSelectedAgent(agent.id)}
+			  className="px-3 py-2 rounded-md flex items-center gap-2 transition-all bg-transparent border-none hover:bg-transparent"
+			>
+			  <img 
+			    src={agent.icon}
+			    className="w-5 h-5 object-contain"
+			  />
+			</button>
             ))}
           </div>
       </div>
+
+      {/* URL Input Section */}
+      <div className="p-4 border-b border-gray-800">
         {/* URL Input */}
         <div className="space-y-3 mb-4">
           <div className="relative">

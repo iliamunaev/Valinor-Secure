@@ -133,7 +133,8 @@ export default function App() {
   return (
     <div className="min-h-screen w-screen bg-gray-950 text-gray-100">
       <div className="flex h-screen overflow-hidden">
-        <Sidebar activeNav={activeNav} onNavChange={setActiveNav} />
+        <Sidebar activeNav={activeNav} onNavChange={setActiveNav} className="mr-5">
+        </Sidebar>
         
         <div className="flex-1 flex overflow-hidden">
           <InspectionPanel
