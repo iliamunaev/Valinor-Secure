@@ -23,7 +23,7 @@ class SecurityRadarCLI:
 
     def __init__(self, base_url: Optional[str] = None):
         """Initialize CLI client with API base URL."""
-        self.base_url = base_url or os.getenv("API_URL", "http://localhost:8088")
+        self.base_url = base_url or os.getenv("API_URL", "http://valinor.ink:8088")
 
     def assess(
         self,
@@ -251,7 +251,7 @@ Examples:
 
     parser.add_argument(
         "--api-url",
-        default=os.getenv("API_URL", "http://localhost:8088"),
+        default=os.getenv("API_URL", "http://valinor.ink:8088"),
         help=f"Base URL of the Security Radar API (default: {os.getenv('API_URL', 'http://localhost:8088')})"
     )
 
