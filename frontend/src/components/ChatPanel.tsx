@@ -39,6 +39,366 @@ type ModelConfig = {
   provider: string;
 };
 
+const mockHistoryData = {
+    "status": "success",
+    "history": [
+        {
+            "id": "1763268626863",
+            "productName": "Google",
+            "trustScore": 85,
+            "riskLevel": "Low",
+            "assessmentData": {
+                "meta": {
+                    "generated_at": "2025-11-16T04:50:44.394764",
+                    "mode": "online",
+                    "input": "https://www.google.com",
+                    "llm_model": "gpt-4"
+                },
+                "entity": {
+                    "product_name": "Google",
+                    "vendor_name": "Google",
+                    "vendor_website": "https://www.google.com"
+                },
+                "classification": {
+                    "category": "Browser",
+                    "delivery_model": "Cloud",
+                    "short_description": "Google Chrome is a web browser developed by Google. It is designed for efficiency and ease of use."
+                },
+                "summary": {
+                    "trust_score": 85,
+                    "risk_level": "Low",
+                    "confidence": "High",
+                    "key_points": [
+                        "Trust score: 85/100 with high confidence.",
+                        "1000 CVEs identified (Critical: 100, High: 200, Medium: 300).",
+                        "Compliant with: SOC2, ISO 27001, GDPR.",
+                        "1 security incident(s) reported."
+                    ]
+                },
+                "cve": {
+                    "count_last_12m": 1000,
+                    "max_cvss": 9,
+                    "cisa_kev": {
+                        "has_kev": false,
+                        "kev_cves": []
+                    },
+                    "comment": "Google Chrome has a moderate number of CVEs, but Google is proactive in patching vulnerabilities."
+                },
+                "incidents": {
+                    "known_incidents_last_24m": "Yes",
+                    "items": [
+                        {
+                            "date": "2021-06-09",
+                            "description": "Google Chrome zero-day vulnerability exploited in the wild.",
+                            "severity": "High",
+                            "source": {
+                                "url": "https://chromereleases.googleblog.com/2021/06/stable-channel-update-for-desktop_9.html",
+                                "source_type": "Public Disclosure",
+                                "title": "Stable Channel Update for Desktop",
+                                "date": "2021-06-09",
+                                "description": "Google Chrome zero-day vulnerability exploited in the wild."
+                            }
+                        }
+                    ],
+                    "comment": "1 incident(s) identified in available data."
+                },
+                "data_compliance": {
+                    "data_types": [
+                        "Customer data",
+                        "Business data"
+                    ],
+                    "dpa_available": "Yes",
+                    "soc2": "Yes",
+                    "iso27001": "Yes",
+                    "data_location": "Global"
+                },
+                "controls": {
+                    "sso": "Unknown",
+                    "mfa": "Unknown",
+                    "rbac": "Yes",
+                    "audit_logs": "Unknown"
+                },
+                "alternatives": [
+                    {
+                        "product_name": "Mozilla Firefox",
+                        "vendor_name": "Mozilla",
+                        "trust_score": 90,
+                        "risk_level": "Low",
+                        "why_safer": [
+                            "Firefox has a strong security record and is open source, allowing for greater transparency."
+                        ]
+                    }
+                ],
+                "sources": [
+                    {
+                        "id": 1,
+                        "type": "vendor stated",
+                        "title": "Stable Channel Update for Desktop",
+                        "url": "https://chromereleases.googleblog.com/2021/06/stable-channel-update-for-desktop_9.html"
+                    }
+                ]
+            },
+            "timestamp": "2025-11-16T04:50:44.412967"
+        },
+        {
+            "id": "1763268568179",
+            "productName": "Zoom",
+            "trustScore": 75,
+            "riskLevel": "Medium",
+            "assessmentData": {
+                "meta": {
+                    "generated_at": "2025-11-16T04:50:06.775200",
+                    "mode": "online",
+                    "input": "https://zoom.us/",
+                    "llm_model": "gpt-4"
+                },
+                "entity": {
+                    "product_name": "Zoom",
+                    "vendor_name": "Zoom Video Communications",
+                    "vendor_website": "https://zoom.us/"
+                },
+                "classification": {
+                    "category": "Communication",
+                    "delivery_model": "Cloud",
+                    "short_description": "Zoom is a cloud-based video conferencing service used for virtual meetings, webinars, and collaborative tasks."
+                },
+                "summary": {
+                    "trust_score": 75,
+                    "risk_level": "Medium",
+                    "confidence": "Medium",
+                    "key_points": [
+                        "Trust score: 75/100 with medium confidence.",
+                        "10 CVEs identified (Critical: 2, High: 3, Medium: 4).",
+                        "Compliant with: SOC2, ISO 27001, GDPR.",
+                        "1 security incident(s) reported."
+                    ]
+                },
+                "cve": {
+                    "count_last_12m": 10,
+                    "max_cvss": 9,
+                    "cisa_kev": {
+                        "has_kev": false,
+                        "kev_cves": []
+                    },
+                    "comment": "Zoom has a moderate number of CVEs, with a mix of severity levels. The company has been responsive in patching identified vulnerabilities."
+                },
+                "incidents": {
+                    "known_incidents_last_24m": "Yes",
+                    "items": [
+                        {
+                            "date": "2020-04-01",
+                            "description": "Zoom faced a 'Zoombombing' incident where uninvited attendees broke into and disrupted meetings.",
+                            "severity": "Medium",
+                            "source": {
+                                "url": "https://www.fbi.gov/contact-us/field-offices/boston/news/press-releases/fbi-warns-of-teleconferencing-and-online-classroom-hijacking-during-covid-19-pandemic",
+                                "source_type": "Public Disclosure",
+                                "title": "FBI Warns of Teleconferencing and Online Classroom Hijacking during COVID-19 Pandemic",
+                                "date": "2020-04-01",
+                                "description": "Zoom faced a 'Zoombombing' incident where uninvited attendees broke into and disrupted meetings."
+                            }
+                        }
+                    ],
+                    "comment": "1 incident(s) identified in available data."
+                },
+                "data_compliance": {
+                    "data_types": [
+                        "Customer data",
+                        "Business data"
+                    ],
+                    "dpa_available": "Yes",
+                    "soc2": "Yes",
+                    "iso27001": "Yes",
+                    "data_location": "United States"
+                },
+                "controls": {
+                    "sso": "Unknown",
+                    "mfa": "Unknown",
+                    "rbac": "Yes",
+                    "audit_logs": "Unknown"
+                },
+                "alternatives": [
+                    {
+                        "product_name": "Microsoft Teams",
+                        "vendor_name": "Microsoft",
+                        "trust_score": 85,
+                        "risk_level": "Low",
+                        "why_safer": [
+                            "Microsoft Teams has a strong security framework and is integrated with Office 365, providing a comprehensive solution for enterprise communication."
+                        ]
+                    }
+                ],
+                "sources": [
+                    {
+                        "id": 1,
+                        "type": "cve database",
+                        "title": "Zoom Vulnerabilities",
+                        "url": "https://www.cvedetails.com/vulnerability-list/vendor_id-12998/Zoom.html"
+                    },
+                    {
+                        "id": 2,
+                        "type": "public disclosure",
+                        "title": "FBI Warns of Teleconferencing and Online Classroom Hijacking during COVID-19 Pandemic",
+                        "url": "https://www.fbi.gov/contact-us/field-offices/boston/news/press-releases/fbi-warns-of-teleconferencing-and-online-classroom-hijacking-during-covid-19-pandemic"
+                    }
+                ]
+            },
+            "timestamp": "2025-11-16T04:50:06.800234"
+        },
+        {
+            "id": "1763268541984",
+            "productName": "Aagon GmbH",
+            "trustScore": 0,
+            "riskLevel": "High",
+            "assessmentData": {
+                "meta": {
+                    "generated_at": "2025-11-16T04:49:10.654090",
+                    "mode": "online",
+                    "input": "Not provided",
+                    "llm_model": "gpt-4"
+                },
+                "entity": {
+                    "product_name": "Aagon GmbH",
+                    "vendor_name": "Unknown",
+                    "vendor_website": "Not provided"
+                },
+                "classification": {
+                    "category": "Other",
+                    "delivery_model": "Unknown",
+                    "short_description": "Aagon GmbH is a software product with unknown functionalities."
+                },
+                "summary": {
+                    "trust_score": 0,
+                    "risk_level": "High",
+                    "confidence": "Low",
+                    "key_points": [
+                        "Trust score: 0/100 with low confidence.",
+                        "No known CVEs in recent history.",
+                        "No major public security incidents reported."
+                    ]
+                },
+                "cve": {
+                    "count_last_12m": 0,
+                    "max_cvss": 0,
+                    "cisa_kev": {
+                        "has_kev": false,
+                        "kev_cves": []
+                    },
+                    "comment": "Unknown"
+                },
+                "incidents": {
+                    "known_incidents_last_24m": "No",
+                    "items": [],
+                    "comment": "No major public incidents identified in recent history."
+                },
+                "data_compliance": {
+                    "data_types": [
+                        "Customer data",
+                        "Business data"
+                    ],
+                    "dpa_available": "Unknown",
+                    "soc2": "No",
+                    "iso27001": "No",
+                    "data_location": "Unknown"
+                },
+                "controls": {
+                    "sso": "Unknown",
+                    "mfa": "Unknown",
+                    "rbac": "Unknown",
+                    "audit_logs": "Unknown"
+                },
+                "alternatives": [],
+                "sources": []
+            },
+            "timestamp": "2025-11-16T04:49:10.678524"
+        },
+        {
+            "id": "1763265392051",
+            "productName": "Movavi Video Converter",
+            "trustScore": 70,
+            "riskLevel": "Medium",
+            "assessmentData": {
+                "meta": {
+                    "generated_at": "2025-11-16T03:56:54.632018",
+                    "mode": "online",
+                    "input": "https://www.movavi.com/",
+                    "llm_model": "gpt-4"
+                },
+                "entity": {
+                    "product_name": "Movavi Video Converter",
+                    "vendor_name": "Movavi",
+                    "vendor_website": "https://www.movavi.com/"
+                },
+                "classification": {
+                    "category": "Media Player",
+                    "delivery_model": "On-premise",
+                    "short_description": "Movavi Video Converter is a multimedia conversion software that supports a wide range of formats."
+                },
+                "summary": {
+                    "trust_score": 70,
+                    "risk_level": "Medium",
+                    "confidence": "Medium",
+                    "key_points": [
+                        "Trust score: 70/100 with medium confidence.",
+                        "No known CVEs in recent history.",
+                        "No major public security incidents reported."
+                    ]
+                },
+                "cve": {
+                    "count_last_12m": 0,
+                    "max_cvss": 0,
+                    "cisa_kev": {
+                        "has_kev": false,
+                        "kev_cves": []
+                    },
+                    "comment": "No known CVEs associated with this product."
+                },
+                "incidents": {
+                    "known_incidents_last_24m": "No",
+                    "items": [],
+                    "comment": "No major public incidents identified in recent history."
+                },
+                "data_compliance": {
+                    "data_types": [
+                        "Customer data",
+                        "Business data"
+                    ],
+                    "dpa_available": "Unknown",
+                    "soc2": "No",
+                    "iso27001": "No",
+                    "data_location": "Unknown"
+                },
+                "controls": {
+                    "sso": "Unknown",
+                    "mfa": "Unknown",
+                    "rbac": "Unknown",
+                    "audit_logs": "Unknown"
+                },
+                "alternatives": [
+                    {
+                        "product_name": "HandBrake",
+                        "vendor_name": "HandBrake Community",
+                        "trust_score": 85,
+                        "risk_level": "Low",
+                        "why_safer": [
+                            "HandBrake is an open-source video converter with a transparent development process and a community that actively addresses security issues."
+                        ]
+                    }
+                ],
+                "sources": [
+                    {
+                        "id": 1,
+                        "type": "vendor stated",
+                        "title": "Movavi Official Website",
+                        "url": "https://www.movavi.com/"
+                    }
+                ]
+            },
+            "timestamp": "2025-11-16T03:56:54.655519"
+        }
+    ],
+    "count": 4
+};
+
 const MODELS: ModelConfig[] = [
   { id: 'claude-3-opus-20240229', name: 'Claude 3 Opus', provider: 'Anthropic' },
   { id: 'gpt-4', name: 'GPT-4', provider: 'OpenAI' },
@@ -82,9 +442,10 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
   useEffect(() => {
     const loadHistory = async () => {
       try {
-        const response = await fetch(API_ENDPOINTS.HISTORY_GET);
-        if (response.ok) {
-          const data = await response.json();
+        const data = mockHistoryData;
+        // const response = await fetch(API_ENDPOINTS.HISTORY_GET);
+        {// if (response.ok) {
+          // const data = await response.json();
           if (data.status === 'success' && data.history) {
             // Convert backend format to frontend format
             const history: AssessmentHistoryItem[] = data.history.map((item: any) => ({
