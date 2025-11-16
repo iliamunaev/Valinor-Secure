@@ -1,4 +1,6 @@
-export const BASE_URL = "http://localhost:8000"; // ← change to backend URL
+export const BASE_URL = import.meta.env.PROD
+  ? "/api"
+  : (import.meta.env.VITE_API_BASE_URL || "http://localhost:8000");
 
 export async function httpGet(path: string) {
   const res = await fetch(`${BASE_URL}${path}`);

@@ -51,9 +51,10 @@ services:
     env_file:
       - .env
     environment:
-      NODE_ENV: development
+      NODE_ENV: production
       CHOKIDAR_USEPOLLING: "true"
       VITE_TEST_FRONTEND: ${TEST_FRONTEND}
+      VITE_API_BASE_URL: ${VITE_API_BASE_URL}
     volumes:
       - ./frontend:/app
       - frontend_node_modules:/app/node_modules

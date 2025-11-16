@@ -85,10 +85,12 @@ export interface SecurityAnalysis {
 }
 
 // API service for backend communication
-const API_BASE_URL = 'http://localhost:8000';
+const API_BASE_URL = import.meta.env.PROD
+  ? '/api'
+  : (import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000');
 
 export class SecurityAnalysisAPI {
-  
+
   static async sendAnalysis(analysisData: SecurityAnalysis): Promise<SecurityAnalysis> {
     try {
       const response = await fetch(`${API_BASE_URL}/assess`, {
@@ -114,7 +116,7 @@ export class SecurityAnalysisAPI {
   static async getInputExample(): Promise<any> {
     try {
       const response = await fetch(`${API_BASE_URL}/input`);
-      
+
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }

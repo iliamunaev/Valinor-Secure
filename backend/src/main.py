@@ -124,8 +124,12 @@ app = FastAPI()
 # Initialize history service
 history_service = HistoryService()
 
-# Allow requests from frontend dev server
-origins = ["http://localhost:5173"]
+# Allow requests from frontend dev server and production domain
+origins = [
+    "http://localhost:5173",  # Vite dev server
+    "https://valinor.ink",    # Production domain
+    "https://www.valinor.ink",
+]
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
