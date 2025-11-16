@@ -67,39 +67,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onToggle, onNavigate, ac
     <div className={`bg-gray-50 dark:bg-gray-900 border-r border-gray-200 dark:border-gray-700 flex flex-col h-screen transition-all duration-300 ease-in-out ${
       isCollapsed ? 'w-16' : 'w-72'
     }`}>
-      {/* Logo and Toggle Button */}
-      <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
-        {!isCollapsed && (
-          <div className="flex items-center space-x-2">
-            <div className="w-6 h-6 bg-gray-800 dark:bg-gray-200 rounded"></div>
-            <span className="font-bold text-lg text-gray-900 dark:text-gray-100">LOGO</span>
-          </div>
-        )}
-        {isCollapsed && (
-          <div className="w-6 h-6 bg-gray-800 dark:bg-gray-200 rounded mx-auto"></div>
-        )}
-        <button
-          onClick={onToggle}
-          className="p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
-          aria-label={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-        >
-          <svg
-            className={`w-5 h-5 text-gray-600 dark:text-gray-300 transition-transform duration-300 ${
-              isCollapsed ? 'rotate-180' : ''
-            }`}
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M15 19l-7-7 7-7"
-            />
-          </svg>
-        </button>
-      </div>
+
 
 
       {/* Navigation Items */}
